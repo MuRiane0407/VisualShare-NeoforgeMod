@@ -8,13 +8,9 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.input.MouseButtonEvent;
-import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.client.resources.metadata.gui.GuiMetadataSection;
-import net.minecraft.client.resources.metadata.gui.GuiSpriteScaling;
 import net.minecraft.client.resources.model.sprite.AtlasManager;
 import net.minecraft.data.AtlasIds;
 import net.minecraft.network.chat.Component;
@@ -23,8 +19,6 @@ import net.minecraft.resources.Identifier;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-
-import static net.minecraft.client.model.geom.builders.MeshTransformer.scaling;
 
 public class CustomColorPalettePanel extends AbstractWidget {
     private static final WidgetSprites background = new WidgetSprites(Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, "fast_screenshot/color_palette_panel"));
