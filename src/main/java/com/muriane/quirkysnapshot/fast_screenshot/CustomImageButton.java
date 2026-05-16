@@ -50,14 +50,14 @@ public class CustomImageButton extends ImageButton {
         public List<ImageButton> getButtonsInColumn() {
             List<ImageButton> buttonList = new ArrayList<>();
             int count = this.buttonInfoList.size();
-            int size = width;
-            int yOffset = Math.min(size+1, height/count);
+            int size = this.width;
+            int yOffset = Math.min(size+1, this.height/count);
             for (int index = 0; index < count; index++) {
                 buttonList.add(new CustomImageButton(
-                        x, y + index*yOffset, size, size,
-                        buttonInfoList.get(index).getFirst().getFirst(),
-                        buttonInfoList.get(index).getFirst().getSecond(),
-                        buttonInfoList.get(index).getSecond()
+                        this.x, this.y + index*yOffset, size, size,
+                        this.buttonInfoList.get(index).getFirst().getFirst(),
+                        this.buttonInfoList.get(index).getFirst().getSecond(),
+                        this.buttonInfoList.get(index).getSecond()
                 ));
             }
             return buttonList;

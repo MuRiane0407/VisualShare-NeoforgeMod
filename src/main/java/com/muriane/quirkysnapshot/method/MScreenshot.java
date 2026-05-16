@@ -106,6 +106,13 @@ public class MScreenshot {
         return getTimeId(image);
     }
 
+    public static <T> String getTimeIdWithoutHash(T object){
+        long currentTimeMillis = System.currentTimeMillis();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
+        Date date = new Date(currentTimeMillis);
+        return formatter.format(date);
+    }
+
     public static <T> String getTimeId(T object){
         long currentTimeMillis = System.currentTimeMillis();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
