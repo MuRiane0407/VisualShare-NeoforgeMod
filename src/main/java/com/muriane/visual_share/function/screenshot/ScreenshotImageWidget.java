@@ -1,4 +1,4 @@
-package com.muriane.visual_share.fast_screenshot;
+package com.muriane.visual_share.function.screenshot;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.platform.Window;
@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 
 import java.awt.*;
 
-public class FastScreenshotImageWidget extends CustomImageWidget{
+public class ScreenshotImageWidget extends CustomImageWidget{
     private final Logger LOGGER = LogUtils.getLogger();
     protected ImageCallback callback;
     protected InteractionMode mode;
@@ -22,7 +22,7 @@ public class FastScreenshotImageWidget extends CustomImageWidget{
     protected float brushSize;
     protected Vector2i brushLastPoint = null;
 
-    public FastScreenshotImageWidget(NativeImage image, float xPercent, float yPercent, float widthPercent, float heightPercent, int guiScale, @NotNull Window window, InteractionMode mode, float[] hsv, float brushSize, ImageCallback callback) {
+    public ScreenshotImageWidget(NativeImage image, float xPercent, float yPercent, float widthPercent, float heightPercent, int guiScale, @NotNull Window window, InteractionMode mode, float[] hsv, float brushSize, ImageCallback callback) {
         super((int) (window.getWidth()*xPercent)/guiScale, (int) (window.getHeight()*yPercent)/guiScale, (int) ((float) image.getWidth()*widthPercent/guiScale), (int) ((float) image.getHeight()*heightPercent/guiScale), image);
         this.callback = callback;
         this.mode = mode;

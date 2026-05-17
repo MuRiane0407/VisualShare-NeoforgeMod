@@ -1,4 +1,4 @@
-package com.muriane.visual_share.fast_screenshot;
+package com.muriane.visual_share.function.screenshot;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.NativeImage;
@@ -9,7 +9,6 @@ import com.muriane.visual_share.Config;
 import com.muriane.visual_share.VisualShare;
 import com.muriane.visual_share.item.ModItems;
 import com.muriane.visual_share.key.ModKeys;
-import com.muriane.visual_share.method.MScreenshot;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -54,67 +53,67 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FastScreenshot {
+public class Screenshot {
     public static Logger LOGGER = LogUtils.getLogger();
-    public static FastScreenshotScreen fastScreenshotScreen;
-    public static Map<String, Pair<Boolean, Vector2i>> fastScreenshotData = new HashMap<>(); // 图片ID, 是否存在, 尺寸
-    public static double maxThumbnailSizePercent = Config.CLIENT.FAST_SCREENSHOT_SHARE_THUMBNAIL_IMAGE_SIZE.getAsDouble();
-    public static double maxFullSizePercent = Config.CLIENT.FAST_SCREENSHOT_SHARE_FULL_IMAGE_SIZE.getAsDouble();
+    public static ScreenshotScreen screenshotScreen;
+    public static Map<String, Pair<Boolean, Vector2i>> ScreenshotData = new HashMap<>(); // 图片ID, 是否存在, 尺寸
+    public static double maxThumbnailSizePercent = Config.CLIENT.SCREENSHOT_SHARE_THUMBNAIL_IMAGE_SIZE.getAsDouble();
+    public static double maxFullSizePercent = Config.CLIENT.SCREENSHOT_SHARE_FULL_IMAGE_SIZE.getAsDouble();
 
     @EventBusSubscriber
-    public static class FastScreenshotHolder{
+    public static class ScreenshotHolder{
         public static String curTextureId = null;
 
         /// 按键检测
         @SubscribeEvent
         public static void onKey(InputEvent.Key event){
             Minecraft mc = Minecraft.getInstance();
-            if (event.getKey() == ModKeys.FAST_SCREENSHOT.getKey().getValue() && event.getAction() == InputConstants.PRESS){
-                if (mc.level != null && !(mc.screen instanceof FastScreenshotScreen)){ // 用level来判断玩家是否已经在某个服务器中
-                    MScreenshot.takeScreenshot(
+            if (event.getKey() == ModKeys.screenshot.getKey().getValue() && event.getAction() == InputConstants.PRESS){
+                if (mc.level != null && !(mc.screen instanceof ScreenshotScreen)){ // 用level来判断玩家是否已经在某个服务器中
+                    com.muriane.visual_share.method.MScreenshot.takeScreenshot(
                             mc.getMainRenderTarget(),
                             1,
                             image -> {
-                                fastScreenshotScreen = new FastScreenshotScreen(mc.screen, image);
-                                mc.setScreen(fastScreenshotScreen);
+                                screenshotScreen = new ScreenshotScreen(mc.screen, image);
+                                mc.setScreen(screenshotScreen);
                             }
                     );
                 }
-            }else if (fastScreenshotScreen != null && mc.screen == fastScreenshotScreen) { // 只有在截图界面中才能操作
+            }else if (screenshotScreen != null && mc.screen == screenshotScreen) { // 只有在截图界面中才能操作
                 if (event.getAction() == InputConstants.PRESS) {
                     if (event.getKey() == ModKeys.SELECTION.getKey().getValue()){
-                        fastScreenshotScreen.setImageInterActionMode(FastScreenshotImageWidget.InteractionMode.SELECTION);
+                        screenshotScreen.setImageInterActionMode(ScreenshotImageWidget.InteractionMode.SELECTION);
                     }else if (event.getKey() == ModKeys.BRUSH.getKey().getValue()){
-                        fastScreenshotScreen.setImageInterActionMode(FastScreenshotImageWidget.InteractionMode.BRUSH);
+                        screenshotScreen.setImageInterActionMode(ScreenshotImageWidget.InteractionMode.BRUSH);
                     }else if (event.getKey() == ModKeys.UNDO_REDO.getKey().getValue()){
                         if (mc.hasControlDown()){
                             if (!mc.hasShiftDown()){
-                                fastScreenshotScreen.imageUndo();
+                                screenshotScreen.imageUndo();
                             }else{
-                                fastScreenshotScreen.imageRedo();
+                                screenshotScreen.imageRedo();
                             }
                         }
                     }else if (event.getKey() == ModKeys.SAVE.getKey().getValue()){
                         if (mc.hasControlDown()) {
-                            fastScreenshotScreen.imageSave();
+                            screenshotScreen.imageSave();
                         }
                     }else if (event.getKey() == ModKeys.SHARE.getKey().getValue()){
                         if (mc.hasControlDown()) {
-                            fastScreenshotScreen.imageShare();
+                            screenshotScreen.imageShare();
                         }
                     }
 
-                    if (fastScreenshotScreen.getImageInterActionMode() == FastScreenshotImageWidget.InteractionMode.SELECTION) {
+                    if (screenshotScreen.getImageInterActionMode() == ScreenshotImageWidget.InteractionMode.SELECTION) {
                         if (event.getKey() == ModKeys.CUT.getKey().getValue()) {
-                            fastScreenshotScreen.imageCut();
+                            screenshotScreen.imageCut();
                         }
                     }
 
-                    if (fastScreenshotScreen.getImageInterActionMode() == FastScreenshotImageWidget.InteractionMode.BRUSH) {
+                    if (screenshotScreen.getImageInterActionMode() == ScreenshotImageWidget.InteractionMode.BRUSH) {
                         if (event.getKey() == ModKeys.COLOR_PALETTE.getKey().getValue()) {
-                            fastScreenshotScreen.imageColorPalette();
+                            screenshotScreen.imageColorPalette();
                         } else if (event.getKey() == ModKeys.BRUSH_SIZE.getKey().getValue()) {
-                            fastScreenshotScreen.imageBrushSize();
+                            screenshotScreen.imageBrushSize();
                         }
                     }
                 }
@@ -124,8 +123,8 @@ public class FastScreenshot {
         /// 转换带标识符的信息为图片信息
         @SubscribeEvent
         public static void onServerReceivedChat(ServerChatEvent event){
-            String prefix = Config.SERVER.FAST_SCREENSHOT_SHARE_PREFIX.get();
-            String subfix = Config.SERVER.FAST_SCREENSHOT_SHARE_SUBFIX.get();
+            String prefix = Config.SERVER.SCREENSHOT_SHARE_IMAGE_PREFIX.get();
+            String subfix = Config.SERVER.SCREENSHOT_SHARE_IMAGE_SUBFIX.get();
 
             Component chat = event.getMessage();
             MutableComponent newChat = MutableComponent.create(Component.empty().getContents());
@@ -141,7 +140,7 @@ public class FastScreenshot {
                         newChat.append(Component.literal(curStr.substring(0, is)).withStyle(cur.getStyle()));
 
                         String find = curStr.substring(is + prefix.length(), ie);
-                        if (findServerFastScreenshotData(find) != null){
+                        if (findServerScreenshotData(find) != null){
                             Player player = Minecraft.getInstance().player;
                             if (player != null){
                                 CompoundTag tag = new CompoundTag();
@@ -149,7 +148,7 @@ public class FastScreenshot {
                                 ItemStackTemplate virtualImage = new ItemStackTemplate(
                                         ModItems.VIRTUAL_IMAGE_ITEM, DataComponentPatch.builder().set(DataComponents.CUSTOM_DATA, CustomData.of(tag)).build()
                                 );
-                                newChat.append(Component.translatable("chat.visual_share.fast_screenshot.image").withStyle(style -> style
+                                newChat.append(Component.translatable("chat.visual_share.screenshot.image").withStyle(style -> style
                                         .withColor(ChatFormatting.BLUE)
                                         .withHoverEvent(new HoverEvent.ShowItem(virtualImage)
                                         )));
@@ -170,11 +169,11 @@ public class FastScreenshot {
             event.setMessage(newChat);
         }
 
-        public static File findServerFastScreenshotData(String name){
+        public static File findServerScreenshotData(String name){
             // 在本地文件中查找
-            File clientFastScreenshotData = new File(Minecraft.getInstance().gameDirectory+"/"+VisualShare.MOD_ID+"/fast_screenshot/server");
-            if (clientFastScreenshotData.exists()){
-                File[] files = clientFastScreenshotData.listFiles();
+            File clientScreenshotData = new File(Minecraft.getInstance().gameDirectory+"/"+VisualShare.MOD_ID+"/screenshot/server");
+            if (clientScreenshotData.exists()){
+                File[] files = clientScreenshotData.listFiles();
                 if (files != null) {
                     for (File data : files){
                         if (data.getName().substring(0, data.getName().lastIndexOf(".")).equals(name)){
@@ -197,15 +196,15 @@ public class FastScreenshot {
                 tooltips.clear();
 
                 // 特殊情况就会看到这个，比如textureId已经过时无法渲染对应的texture
-                Pair<Boolean, Vector2i> info = fastScreenshotData.getOrDefault(curTextureId, null);
+                Pair<Boolean, Vector2i> info = ScreenshotData.getOrDefault(curTextureId, null);
                 if (info != null && info.getFirst()) {
                     if (info.getSecond() != null){
-                        tooltips.add(Component.translatable("tip.visual_share.fast_screenshot.image.image"));
+                        tooltips.add(Component.translatable("tip.visual_share.screenshot.image.image"));
                     }else{
-                        tooltips.add(Component.translatable("tip.visual_share.fast_screenshot.image.no_image"));
+                        tooltips.add(Component.translatable("tip.visual_share.screenshot.image.no_image"));
                     }
                 }else{
-                    tooltips.add(Component.translatable("tip.visual_share.fast_screenshot.image.image_loading"));
+                    tooltips.add(Component.translatable("tip.visual_share.screenshot.image.image_loading"));
                 }
             }else{
                 curTextureId = null;
@@ -218,7 +217,7 @@ public class FastScreenshot {
                 if (!event.getItemStack().is(ModItems.VIRTUAL_IMAGE_ITEM)){
                     curTextureId = null;
                 }else{
-                    Pair<Boolean, Vector2i> info = fastScreenshotData.getOrDefault(curTextureId, null);
+                    Pair<Boolean, Vector2i> info = ScreenshotData.getOrDefault(curTextureId, null);
                     if (info == null) {
                         tryGetImage();
                     }else{
@@ -231,16 +230,16 @@ public class FastScreenshot {
         }
 
         public static void tryGetImage(){
-            fastScreenshotData.put(curTextureId, new Pair<>(false, null));
+            ScreenshotData.put(curTextureId, new Pair<>(false, null));
 
-            File imageData = findClientFastScreenshotData(curTextureId);
+            File imageData = findClientScreenshotData(curTextureId);
             if (imageData != null){
                 String imageType = imageData.getName().substring(imageData.getName().lastIndexOf(".")+1);
                 try (FileInputStream fis = new FileInputStream(imageData)){
                     NativeImage image = null;
-                    if (imageType.equals(Config.DataType.png.getType())) {
+                    if (imageType.equals(Config.DataType.PNG.getType())) {
                         image = NativeImage.read(fis);
-                    }else if (imageType.equals(Config.DataType.avif.getType())){
+                    }else if (imageType.equals(Config.DataType.AVIF.getType())){
                         BufferedImage buffer = ImageIO.read(new ByteArrayInputStream(fis.readAllBytes()));
                         image = new NativeImage(buffer.getWidth(), buffer.getHeight(), true);
                         for (int y = 0 ; y < image.getHeight() ; y++){
@@ -254,21 +253,21 @@ public class FastScreenshot {
                         Identifier textureId = Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, curTextureId);
                         DynamicTexture texture = new DynamicTexture(textureId::toString, image);
                         Minecraft.getInstance().getTextureManager().register(textureId, texture);
-                        FastScreenshot.fastScreenshotData.put(curTextureId, new Pair<>(true, new Vector2i(image.getWidth(), image.getHeight())));
+                        Screenshot.ScreenshotData.put(curTextureId, new Pair<>(true, new Vector2i(image.getWidth(), image.getHeight())));
                     }
                 }catch (IOException e){
                     LOGGER.error("Error read client file: {}", e.getMessage());
                 }
             }else{
-                ClientPacketDistributor.sendToServer(new ImageNameData(curTextureId));
+                ClientPacketDistributor.sendToServer(new ImageLoadRequestData(curTextureId));
             }
         }
 
-        public static File findClientFastScreenshotData(String name){
+        public static File findClientScreenshotData(String name){
             // 在本地文件中查找
-            File clientFastScreenshotData = new File(Minecraft.getInstance().gameDirectory+"/"+VisualShare.MOD_ID+"/fast_screenshot/client");
-            if (clientFastScreenshotData.exists()){
-                File[] files = clientFastScreenshotData.listFiles();
+            File clientScreenshotData = new File(Minecraft.getInstance().gameDirectory+"/"+VisualShare.MOD_ID+"/screenshot/client");
+            if (clientScreenshotData.exists()){
+                File[] files = clientScreenshotData.listFiles();
                 if (files != null) {
                     for (File data : files){
                         if (data.getName().substring(0, data.getName().lastIndexOf(".")).equals(name)){
@@ -342,27 +341,27 @@ public class FastScreenshot {
 //        @SubscribeEvent
 //        public static void onServerClose(ServerStoppingEvent event){
 //            File serverDir = new File(event.getServer().getServerDirectory().toUri());
-//            clearFastScreenshotData(serverDir);
+//            clearScreenshotData(serverDir);
 //        }
 //
 //        @SubscribeEvent
 //        public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event){ // 存在一个使用同一个客户端时，一个客户端退出会清空另一个客户端的缓存的问题，暂时不修复
-//            clearFastScreenshotData(Minecraft.getInstance().gameDirectory);
-//            for (String data : fastScreenshotData.keySet()){
+//            clearScreenshotData(Minecraft.getInstance().gameDirectory);
+//            for (String data : ScreenshotData.keySet()){
 //                Minecraft.getInstance().getTextureManager().release(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, data));
 //            }
-//            fastScreenshotData.clear();
+//            ScreenshotData.clear();
 //        }
 //
 //        @SubscribeEvent
 //        public static void onGameShuttingDown(GameShuttingDownEvent event){
-//            clearFastScreenshotData(Minecraft.getInstance().gameDirectory);
+//            clearScreenshotData(Minecraft.getInstance().gameDirectory);
 //        }
 //
-//        public static void clearFastScreenshotData(File rootDir){
+//        public static void clearScreenshotData(File rootDir){
 //            File modDataDir = new File(rootDir, VisualShare.MOD_ID);
 //            if (!modDataDir.exists()) return;
-//            File fastScrDataDir = new File(modDataDir, "fast_screenshot");
+//            File fastScrDataDir = new File(modDataDir, "screenshot");
 //            if (!fastScrDataDir.exists()) return;
 //            File[] files = fastScrDataDir.listFiles();
 //            if (files != null) {
@@ -373,13 +372,14 @@ public class FastScreenshot {
 //        }
     }
 
-    public record ImageNameData(String id) implements CustomPacketPayload{
-        public static final Type<ImageNameData> TYPE = new Type<>(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "image_name"));
+    public record ImageLoadRequestData(String id) implements CustomPacketPayload{
+        public static final Logger LOGGER = LogUtils.getLogger();
+        public static final Type<ImageLoadRequestData> TYPE = new Type<>(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "image_load"));
 
-        public static final StreamCodec<ByteBuf, ImageNameData> STREAM_CODEC = StreamCodec.composite(
+        public static final StreamCodec<ByteBuf, ImageLoadRequestData> STREAM_CODEC = StreamCodec.composite(
                 ByteBufCodecs.STRING_UTF8,
-                ImageNameData::id,
-                ImageNameData::new
+                ImageLoadRequestData::id,
+                ImageLoadRequestData::new
         );
 
         @Override
@@ -393,8 +393,8 @@ public class FastScreenshot {
             public static void register(RegisterPayloadHandlersEvent event){
                 final PayloadRegistrar registrar = event.registrar("1");
                 registrar.playBidirectional(
-                        ImageNameData.TYPE,
-                        ImageNameData.STREAM_CODEC,
+                        ImageLoadRequestData.TYPE,
+                        ImageLoadRequestData.STREAM_CODEC,
                         ServerPayloadHandler::handleDataOnMain
                 );
             }
@@ -402,14 +402,14 @@ public class FastScreenshot {
             @SubscribeEvent
             public static void register(RegisterClientPayloadHandlersEvent event){
                 event.register(
-                        ImageNameData.TYPE,
+                        ImageLoadRequestData.TYPE,
                         ClientPayloadHandler::handleDataOnMain
                 );
             }
 
             public static class ServerPayloadHandler {
-                public static void handleDataOnMain(final ImageNameData data, final IPayloadContext context) {
-                    File imageData = FastScreenshotHolder.findServerFastScreenshotData(data.id);
+                public static void handleDataOnMain(final ImageLoadRequestData data, final IPayloadContext context) {
+                    File imageData = ScreenshotHolder.findServerScreenshotData(data.id);
                     if (imageData != null){
                         byte[] bytes = null;
                         try (FileInputStream fis = new FileInputStream(imageData)) {
@@ -419,15 +419,17 @@ public class FastScreenshot {
                         }
 
                         PacketDistributor.sendToPlayer((ServerPlayer) context.player(), new ImageData(bytes, data.id, imageData.getName().substring(imageData.getName().lastIndexOf(".")+1)));
+                        LOGGER.info("Successful find {}", data.id);
                     }else{
-                        PacketDistributor.sendToPlayer((ServerPlayer) context.player(), new ImageNameData(data.id));
+                        PacketDistributor.sendToPlayer((ServerPlayer) context.player(), new ImageLoadRequestData(data.id));
+                        LOGGER.warn("{} don't exist", data.id);
                     }
                 }
             }
 
             public static class ClientPayloadHandler {
-                public static void handleDataOnMain(final ImageNameData data, final IPayloadContext context) {
-                    fastScreenshotData.put(data.id, new Pair<>(true, null));
+                public static void handleDataOnMain(final ImageLoadRequestData data, final IPayloadContext context) {
+                    ScreenshotData.put(data.id, new Pair<>(true, null));
                 }
             }
         }
@@ -475,7 +477,7 @@ public class FastScreenshot {
                 public static void handleDataOnMain(final ImageData data, final IPayloadContext context) {
                     File modDataDir = new File(Minecraft.getInstance().gameDirectory, VisualShare.MOD_ID);
                     modDataDir.mkdir();
-                    File fastScrDataDir = new File(modDataDir, "fast_screenshot");
+                    File fastScrDataDir = new File(modDataDir, "screenshot");
                     fastScrDataDir.mkdir();
                     File serverDir = new File(fastScrDataDir, "server");
                     serverDir.mkdir();
@@ -483,6 +485,7 @@ public class FastScreenshot {
 
                     try (FileOutputStream fos = new FileOutputStream(imageData)) {
                         fos.write(data.data);
+                        LOGGER.info("{} upload {}", context.player().getDisplayName().getString(), data.imageId);
                     }catch (IOException e){
                         LOGGER.error("Error write to server file: {}", e.getMessage());
                     }
@@ -495,7 +498,7 @@ public class FastScreenshot {
                 public static void handleDataOnMain(final ImageData data, final IPayloadContext context) {
                     File modDataDir = new File(Minecraft.getInstance().gameDirectory, VisualShare.MOD_ID);
                     modDataDir.mkdir();
-                    File fastScrDataDir = new File(modDataDir, "fast_screenshot");
+                    File fastScrDataDir = new File(modDataDir, "screenshot");
                     fastScrDataDir.mkdir();
                     File clientDir = new File(fastScrDataDir, "client");
                     clientDir.mkdir();
@@ -503,6 +506,7 @@ public class FastScreenshot {
 
                     try (FileOutputStream fos = new FileOutputStream(imageData)) {
                         fos.write(data.data);
+                        LOGGER.info("Successful load image {}", data.imageId);
                     }catch (IOException e){
                         LOGGER.error("Error write to client file: {}", e.getMessage());
                     }
@@ -510,9 +514,9 @@ public class FastScreenshot {
                     Minecraft.getInstance().execute(() -> {
                         try {
                             NativeImage image = null;
-                            if (data.imageType.equals(Config.DataType.png.getType())) {
+                            if (data.imageType.equals(Config.DataType.PNG.getType())) {
                                 image = NativeImage.read(data.data);
-                            }else if (data.imageType.equals(Config.DataType.avif.getType())){
+                            }else if (data.imageType.equals(Config.DataType.AVIF.getType())){
                                 BufferedImage buffer = ImageIO.read(new ByteArrayInputStream(data.data));
                                 image = new NativeImage(buffer.getWidth(), buffer.getHeight(), true);
                                 for (int y = 0 ; y < image.getHeight() ; y++){
@@ -526,7 +530,7 @@ public class FastScreenshot {
                                 Identifier textureId = Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, data.imageId);
                                 DynamicTexture texture = new DynamicTexture(textureId::toString, image);
                                 Minecraft.getInstance().getTextureManager().register(textureId, texture);
-                                FastScreenshot.fastScreenshotData.put(data.imageId, new Pair<>(true, new Vector2i(image.getWidth(), image.getHeight())));
+                                Screenshot.ScreenshotData.put(data.imageId, new Pair<>(true, new Vector2i(image.getWidth(), image.getHeight())));
                             }
                         } catch (IOException e) {
                             LOGGER.error("Error turn data into texture: {}", e.getMessage());

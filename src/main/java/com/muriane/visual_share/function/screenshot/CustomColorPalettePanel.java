@@ -1,4 +1,4 @@
-package com.muriane.visual_share.fast_screenshot;
+package com.muriane.visual_share.function.screenshot;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.muriane.visual_share.VisualShare;
@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CustomColorPalettePanel extends AbstractWidget {
-    private static final WidgetSprites background = new WidgetSprites(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "fast_screenshot/color_palette_panel"));
+    private static final WidgetSprites background = new WidgetSprites(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "screenshot/color_palette_panel"));
     protected final float scale;
     protected final float[] HSV;
     protected TextureAtlas guiSprites;

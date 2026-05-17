@@ -21,94 +21,98 @@ public class Config {
     }
 
     public static class Server {
-        public final ModConfigSpec.EnumValue<OverrideMode> FAST_SCREENSHOT_SHARE_OVERRIDE_CLIENT_PARAM;
-        public final ModConfigSpec.EnumValue<DataType> FAST_SCREENSHOT_SHARE_DATA_TYPE;
-        public final ModConfigSpec.IntValue FAST_SCREENSHOT_SHARE_AVIF_QUALITY;
-        public final ModConfigSpec.IntValue FAST_SCREENSHOT_SHARE_AVIF_SPEED;
-        public final ModConfigSpec.BooleanValue FAST_SCREENSHOT_SHARE_AVIF_LOSSLESS;
-        public final ModConfigSpec.EnumValue<InterpolationAlgorithm> FAST_SCREENSHOT_SHARE_INTERPOLATION_ALGORITHM;
-        public final ModConfigSpec.IntValue FAST_SCREENSHOT_SHARE_MAX_SIZE;
-        public final ModConfigSpec.ConfigValue<String> FAST_SCREENSHOT_SHARE_PREFIX;
-        public final ModConfigSpec.ConfigValue<String> FAST_SCREENSHOT_SHARE_SUBFIX;
+        public final ModConfigSpec.EnumValue<OverrideMode> SCREENSHOT_SHARE_OVERRIDE_CLIENT_PARAM;
+        public final ModConfigSpec.EnumValue<DataType> SCREENSHOT_SHARE_DATA_TYPE;
+        public final ModConfigSpec.IntValue SCREENSHOT_SHARE_AVIF_QUALITY;
+        public final ModConfigSpec.IntValue SCREENSHOT_SHARE_AVIF_SPEED;
+        public final ModConfigSpec.BooleanValue SCREENSHOT_SHARE_AVIF_LOSSLESS;
+        public final ModConfigSpec.EnumValue<InterpolationAlgorithm> SCREENSHOT_SHARE_INTERPOLATION_ALGORITHM;
+        public final ModConfigSpec.IntValue SCREENSHOT_SHARE_MAX_SIZE;
+        public final ModConfigSpec.IntValue SCREENSHOT_SHARE_COOLDOWN;
+        public final ModConfigSpec.ConfigValue<String> SCREENSHOT_SHARE_IMAGE_PREFIX;
+        public final ModConfigSpec.ConfigValue<String> SCREENSHOT_SHARE_IMAGE_SUBFIX;
 
         Server(ModConfigSpec.Builder builder){
-            builder.push("fast_screenshot");
+            builder.push("screenshot");
             builder.push("share");
-            FAST_SCREENSHOT_SHARE_OVERRIDE_CLIENT_PARAM = builder
-                    .translation("visual_share.configuration.fast_screenshot.share.override_client_param")
+            SCREENSHOT_SHARE_OVERRIDE_CLIENT_PARAM = builder
+                    .translation("visual_share.configuration.screenshot.share.override_client_param")
                     .defineEnum("override_client_param", OverrideMode.MAX);
 
             builder.push("override_share_param");
-            FAST_SCREENSHOT_SHARE_DATA_TYPE = builder
-                    .translation("visual_share.configuration.fast_screenshot.share_data_type")
-                    .defineEnum("data_type", DataType.avif);
+            SCREENSHOT_SHARE_DATA_TYPE = builder
+                    .translation("visual_share.configuration.screenshot.share_data_type")
+                    .defineEnum("data_type", DataType.AVIF);
 
-            builder.push("share_data_param");
-            FAST_SCREENSHOT_SHARE_AVIF_QUALITY = builder
-                    .translation("visual_share.configuration.fast_screenshot.share_data_param.avif_quality")
+            builder.push("share_param");
+            SCREENSHOT_SHARE_AVIF_QUALITY = builder
+                    .translation("visual_share.configuration.screenshot.share_param.avif_quality")
                     .defineInRange("avif_quality", 75, 0, 100);
-            FAST_SCREENSHOT_SHARE_AVIF_SPEED = builder
-                    .translation("visual_share.configuration.fast_screenshot.share_data_param.avif_speed")
+            SCREENSHOT_SHARE_AVIF_SPEED = builder
+                    .translation("visual_share.configuration.screenshot.share_param.avif_speed")
                     .defineInRange("avif_speed", 10, 0, 10);
-            FAST_SCREENSHOT_SHARE_AVIF_LOSSLESS = builder
-                    .translation("visual_share.configuration.fast_screenshot.share_data_param.avif_lossless")
+            SCREENSHOT_SHARE_AVIF_LOSSLESS = builder
+                    .translation("visual_share.configuration.screenshot.share_param.avif_lossless")
                     .define("avif_lossless", false);
             builder.pop();
 
-            FAST_SCREENSHOT_SHARE_INTERPOLATION_ALGORITHM = builder
-                    .translation("visual_share.configuration.fast_screenshot.share_interpolation_algorithm")
+            SCREENSHOT_SHARE_INTERPOLATION_ALGORITHM = builder
+                    .translation("visual_share.configuration.screenshot.share.interpolation_algorithm")
                     .defineEnum("interpolation_algorithm", InterpolationAlgorithm.Nearest);
             builder.pop();
 
-            FAST_SCREENSHOT_SHARE_MAX_SIZE = builder
-                    .translation("visual_share.configuration.fast_screenshot.share.max_size")
-                    .defineInRange("max_size", -1, -1, 32768);
-            FAST_SCREENSHOT_SHARE_PREFIX = builder
-                    .translation("visual_share.configuration.fast_screenshot.share.prefix")
+            SCREENSHOT_SHARE_MAX_SIZE = builder
+                    .translation("visual_share.configuration.screenshot.share.max_size")
+                    .defineInRange("max_size", 1920, -1, 32768);
+            SCREENSHOT_SHARE_COOLDOWN = builder
+                    .translation("visual_share.configuration.screenshot.share.cooldown")
+                    .defineInRange("cooldown", 3, 0, 300);
+            SCREENSHOT_SHARE_IMAGE_PREFIX = builder
+                    .translation("visual_share.configuration.screenshot.share.image_prefix")
                     .define("prefix", "<qs_fs>");
-            FAST_SCREENSHOT_SHARE_SUBFIX = builder
-                    .translation("visual_share.configuration.fast_screenshot.share.subfix")
+            SCREENSHOT_SHARE_IMAGE_SUBFIX = builder
+                    .translation("visual_share.configuration.screenshot.share.image_subfix")
                     .define("subfix", "</qs_fs>");
             builder.pop();
         }
     }
 
     public static class Client {
-        public final ModConfigSpec.EnumValue<DataType> FAST_SCREENSHOT_SHARE_DATA_TYPE;
-        public final ModConfigSpec.IntValue FAST_SCREENSHOT_SHARE_AVIF_QUALITY;
-        public final ModConfigSpec.IntValue FAST_SCREENSHOT_SHARE_AVIF_SPEED;
-        public final ModConfigSpec.BooleanValue FAST_SCREENSHOT_SHARE_AVIF_LOSSLESS;
-        public final ModConfigSpec.EnumValue<InterpolationAlgorithm> FAST_SCREENSHOT_SHARE_INTERPOLATION_ALGORITHM;
-        public final ModConfigSpec.DoubleValue FAST_SCREENSHOT_SHARE_THUMBNAIL_IMAGE_SIZE;
-        public final ModConfigSpec.DoubleValue FAST_SCREENSHOT_SHARE_FULL_IMAGE_SIZE;
+        public final ModConfigSpec.EnumValue<DataType> SCREENSHOT_SHARE_DATA_TYPE;
+        public final ModConfigSpec.IntValue SCREENSHOT_SHARE_AVIF_QUALITY;
+        public final ModConfigSpec.IntValue SCREENSHOT_SHARE_AVIF_SPEED;
+        public final ModConfigSpec.BooleanValue SCREENSHOT_SHARE_AVIF_LOSSLESS;
+        public final ModConfigSpec.EnumValue<InterpolationAlgorithm> SCREENSHOT_SHARE_INTERPOLATION_ALGORITHM;
+        public final ModConfigSpec.DoubleValue SCREENSHOT_SHARE_THUMBNAIL_IMAGE_SIZE;
+        public final ModConfigSpec.DoubleValue SCREENSHOT_SHARE_FULL_IMAGE_SIZE;
 
         Client(ModConfigSpec.Builder builder){
-            builder.push("fast_screenshot");
+            builder.push("screenshot");
             builder.push("share");
-            FAST_SCREENSHOT_SHARE_DATA_TYPE = builder
-                    .translation("visual_share.configuration.fast_screenshot.share_data_type")
-                    .defineEnum("data_type", DataType.avif);
+            SCREENSHOT_SHARE_DATA_TYPE = builder
+                    .translation("visual_share.configuration.screenshot.share_data_type")
+                    .defineEnum("data_type", DataType.AVIF);
 
-            builder.push("share_data_param");
-            FAST_SCREENSHOT_SHARE_AVIF_QUALITY = builder
-                    .translation("visual_share.configuration.fast_screenshot.share_data_param.avif_quality")
+            builder.push("share_param");
+            SCREENSHOT_SHARE_AVIF_QUALITY = builder
+                    .translation("visual_share.configuration.screenshot.share_param.avif_quality")
                     .defineInRange("avif_quality", 75, 0, 100);
-            FAST_SCREENSHOT_SHARE_AVIF_SPEED = builder
-                    .translation("visual_share.configuration.fast_screenshot.share_data_param.avif_speed")
+            SCREENSHOT_SHARE_AVIF_SPEED = builder
+                    .translation("visual_share.configuration.screenshot.share_param.avif_speed")
                     .defineInRange("avif_speed", 10, 0, 10);
-            FAST_SCREENSHOT_SHARE_AVIF_LOSSLESS = builder
-                    .translation("visual_share.configuration.fast_screenshot.share_data_param.avif_lossless")
+            SCREENSHOT_SHARE_AVIF_LOSSLESS = builder
+                    .translation("visual_share.configuration.screenshot.share_param.avif_lossless")
                     .define("avif_lossless", false);
             builder.pop();
 
-            FAST_SCREENSHOT_SHARE_INTERPOLATION_ALGORITHM = builder
-                    .translation("visual_share.configuration.fast_screenshot.share_interpolation_algorithm")
+            SCREENSHOT_SHARE_INTERPOLATION_ALGORITHM = builder
+                    .translation("visual_share.configuration.screenshot.share.interpolation_algorithm")
                     .defineEnum("interpolation_algorithm", InterpolationAlgorithm.Nearest);
-            FAST_SCREENSHOT_SHARE_THUMBNAIL_IMAGE_SIZE = builder
-                    .translation("visual_share.configuration.fast_screenshot.share_thumbnail_image_size")
+            SCREENSHOT_SHARE_THUMBNAIL_IMAGE_SIZE = builder
+                    .translation("visual_share.configuration.screenshot.share.thumbnail_image_size")
                     .defineInRange("thumbnail_image_size", 0.25, 0, 1);
-            FAST_SCREENSHOT_SHARE_FULL_IMAGE_SIZE = builder
-                    .translation("visual_share.configuration.fast_screenshot.share_full_image_size")
+            SCREENSHOT_SHARE_FULL_IMAGE_SIZE = builder
+                    .translation("visual_share.configuration.screenshot.share.full_image_size")
                     .defineInRange("full_image_size", 0.75, 0, 1);
             builder.pop();
             builder.pop();
@@ -116,12 +120,12 @@ public class Config {
     }
 
     public enum OverrideMode{
-        NO, MAX, MIN, ALL;
+        NO, MAX, MIN, ALWAYS;
     }
 
     public enum DataType{
-        png("png"),
-        avif("avif");
+        PNG("png"),
+        AVIF("avif");
 
         private final String type;
 

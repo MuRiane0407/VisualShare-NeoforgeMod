@@ -1,4 +1,4 @@
-package com.muriane.visual_share.fast_screenshot;
+package com.muriane.visual_share.function.screenshot;
 
 import com.muriane.visual_share.VisualShare;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CustomNumberPanel extends AbstractWidget {
-    private static final WidgetSprites background = new WidgetSprites(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "fast_screenshot/number_panel"));
+    private static final WidgetSprites background = new WidgetSprites(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "screenshot/number_panel"));
     protected final float scale;
     protected float percent;
     protected final float numberScale;

@@ -1,4 +1,4 @@
-package com.muriane.visual_share.fast_screenshot;
+package com.muriane.visual_share.function.screenshot;
 
 import com.mojang.blaze3d.platform.Window;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
