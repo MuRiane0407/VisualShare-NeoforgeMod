@@ -1,15 +1,15 @@
-package com.muriane.quirkysnapshot.fast_screenshot;
+package com.muriane.visual_share.fast_screenshot;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
-import com.muriane.quirkysnapshot.Config;
-import com.muriane.quirkysnapshot.QuirkySnapshot;
-import com.muriane.quirkysnapshot.item.ModItems;
-import com.muriane.quirkysnapshot.key.ModKeys;
-import com.muriane.quirkysnapshot.method.MScreenshot;
+import com.muriane.visual_share.Config;
+import com.muriane.visual_share.VisualShare;
+import com.muriane.visual_share.item.ModItems;
+import com.muriane.visual_share.key.ModKeys;
+import com.muriane.visual_share.method.MScreenshot;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -46,11 +46,10 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import org.joml.Vector2i;
 import org.slf4j.Logger;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.awt.image.BufferedImage;
+import java.io.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -150,7 +149,7 @@ public class FastScreenshot {
                                 ItemStackTemplate virtualImage = new ItemStackTemplate(
                                         ModItems.VIRTUAL_IMAGE_ITEM, DataComponentPatch.builder().set(DataComponents.CUSTOM_DATA, CustomData.of(tag)).build()
                                 );
-                                newChat.append(Component.translatable("chat.quirkysnapshot.fast_screenshot.image").withStyle(style -> style
+                                newChat.append(Component.translatable("chat.visual_share.fast_screenshot.image").withStyle(style -> style
                                         .withColor(ChatFormatting.BLUE)
                                         .withHoverEvent(new HoverEvent.ShowItem(virtualImage)
                                         )));
@@ -173,7 +172,7 @@ public class FastScreenshot {
 
         public static File findServerFastScreenshotData(String name){
             // 在本地文件中查找
-            File clientFastScreenshotData = new File(Minecraft.getInstance().gameDirectory+"/data/"+QuirkySnapshot.MOD_ID+"/fast-screenshot/server");
+            File clientFastScreenshotData = new File(Minecraft.getInstance().gameDirectory+"/"+VisualShare.MOD_ID+"/fast_screenshot/server");
             if (clientFastScreenshotData.exists()){
                 File[] files = clientFastScreenshotData.listFiles();
                 if (files != null) {
@@ -201,12 +200,12 @@ public class FastScreenshot {
                 Pair<Boolean, Vector2i> info = fastScreenshotData.getOrDefault(curTextureId, null);
                 if (info != null && info.getFirst()) {
                     if (info.getSecond() != null){
-                        tooltips.add(Component.literal("Image"));
+                        tooltips.add(Component.translatable("tip.visual_share.fast_screenshot.image.image"));
                     }else{
-                        tooltips.add(Component.literal("No that image"));
+                        tooltips.add(Component.translatable("tip.visual_share.fast_screenshot.image.no_image"));
                     }
                 }else{
-                    tooltips.add(Component.literal("Loading"));
+                    tooltips.add(Component.translatable("tip.visual_share.fast_screenshot.image.image_loading"));
                 }
             }else{
                 curTextureId = null;
@@ -236,13 +235,27 @@ public class FastScreenshot {
 
             File imageData = findClientFastScreenshotData(curTextureId);
             if (imageData != null){
+                String imageType = imageData.getName().substring(imageData.getName().lastIndexOf(".")+1);
                 try (FileInputStream fis = new FileInputStream(imageData)){
-                    NativeImage image = NativeImage.read(fis.readAllBytes());
+                    NativeImage image = null;
+                    if (imageType.equals(Config.DataType.png.getType())) {
+                        image = NativeImage.read(fis);
+                    }else if (imageType.equals(Config.DataType.avif.getType())){
+                        BufferedImage buffer = ImageIO.read(new ByteArrayInputStream(fis.readAllBytes()));
+                        image = new NativeImage(buffer.getWidth(), buffer.getHeight(), true);
+                        for (int y = 0 ; y < image.getHeight() ; y++){
+                            for (int x = 0 ; x < image.getWidth() ; x++){
+                                image.setPixel(x, y, buffer.getRGB(x, y));
+                            }
+                        }
+                    }
 
-                    Identifier textureId = Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, curTextureId);
-                    DynamicTexture texture = new DynamicTexture(textureId::toString, image);
-                    Minecraft.getInstance().getTextureManager().register(textureId, texture);
-                    FastScreenshot.fastScreenshotData.put(curTextureId, new Pair<>(true, new Vector2i(image.getWidth(), image.getHeight())));
+                    if (image != null){
+                        Identifier textureId = Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, curTextureId);
+                        DynamicTexture texture = new DynamicTexture(textureId::toString, image);
+                        Minecraft.getInstance().getTextureManager().register(textureId, texture);
+                        FastScreenshot.fastScreenshotData.put(curTextureId, new Pair<>(true, new Vector2i(image.getWidth(), image.getHeight())));
+                    }
                 }catch (IOException e){
                     LOGGER.error("Error read client file: {}", e.getMessage());
                 }
@@ -253,7 +266,7 @@ public class FastScreenshot {
 
         public static File findClientFastScreenshotData(String name){
             // 在本地文件中查找
-            File clientFastScreenshotData = new File(Minecraft.getInstance().gameDirectory+"/data/"+QuirkySnapshot.MOD_ID+"/fast-screenshot/client");
+            File clientFastScreenshotData = new File(Minecraft.getInstance().gameDirectory+"/"+VisualShare.MOD_ID+"/fast_screenshot/client");
             if (clientFastScreenshotData.exists()){
                 File[] files = clientFastScreenshotData.listFiles();
                 if (files != null) {
@@ -292,7 +305,7 @@ public class FastScreenshot {
             graphics.fill(x-outlineSize, y, x, y+height, outlineColor);
             graphics.fill(x+width, y, x+width+outlineSize, y+height, outlineColor);
             graphics.fill(x-outlineSize, y+height, x+width+outlineSize, y+height+outlineSize, outlineColor);
-            graphics.blit(RenderPipelines.GUI_TEXTURED, Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, curTextureId), x, y, 0, 0, width, height, width, height);
+            graphics.blit(RenderPipelines.GUI_TEXTURED, Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, curTextureId), x, y, 0, 0, width, height, width, height);
 
             event.setCanceled(true);
         }
@@ -336,7 +349,7 @@ public class FastScreenshot {
 //        public static void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event){ // 存在一个使用同一个客户端时，一个客户端退出会清空另一个客户端的缓存的问题，暂时不修复
 //            clearFastScreenshotData(Minecraft.getInstance().gameDirectory);
 //            for (String data : fastScreenshotData.keySet()){
-//                Minecraft.getInstance().getTextureManager().release(Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, data));
+//                Minecraft.getInstance().getTextureManager().release(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, data));
 //            }
 //            fastScreenshotData.clear();
 //        }
@@ -347,11 +360,9 @@ public class FastScreenshot {
 //        }
 //
 //        public static void clearFastScreenshotData(File rootDir){
-//            File dataDir = new File(rootDir, "data");
-//            if (!dataDir.exists()) return;
-//            File modDataDir = new File(dataDir, QuirkySnapshot.MOD_ID);
+//            File modDataDir = new File(rootDir, VisualShare.MOD_ID);
 //            if (!modDataDir.exists()) return;
-//            File fastScrDataDir = new File(modDataDir, "fast-screenshot");
+//            File fastScrDataDir = new File(modDataDir, "fast_screenshot");
 //            if (!fastScrDataDir.exists()) return;
 //            File[] files = fastScrDataDir.listFiles();
 //            if (files != null) {
@@ -363,7 +374,7 @@ public class FastScreenshot {
     }
 
     public record ImageNameData(String id) implements CustomPacketPayload{
-        public static final Type<ImageNameData> TYPE = new Type<>(Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, "image_name"));
+        public static final Type<ImageNameData> TYPE = new Type<>(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "image_name"));
 
         public static final StreamCodec<ByteBuf, ImageNameData> STREAM_CODEC = StreamCodec.composite(
                 ByteBufCodecs.STRING_UTF8,
@@ -384,7 +395,7 @@ public class FastScreenshot {
                 registrar.playBidirectional(
                         ImageNameData.TYPE,
                         ImageNameData.STREAM_CODEC,
-                        ImageNameData.DataHolder.ServerPayloadHandler::handleDataOnMain
+                        ServerPayloadHandler::handleDataOnMain
                 );
             }
 
@@ -392,7 +403,7 @@ public class FastScreenshot {
             public static void register(RegisterClientPayloadHandlersEvent event){
                 event.register(
                         ImageNameData.TYPE,
-                        ImageNameData.DataHolder.ClientPayloadHandler::handleDataOnMain
+                        ClientPayloadHandler::handleDataOnMain
                 );
             }
 
@@ -407,7 +418,7 @@ public class FastScreenshot {
                             LOGGER.error("Error read server file: {}", e.getMessage());
                         }
 
-                        PacketDistributor.sendToPlayer((ServerPlayer) context.player(), new ImageData(bytes, data.id));
+                        PacketDistributor.sendToPlayer((ServerPlayer) context.player(), new ImageData(bytes, data.id, imageData.getName().substring(imageData.getName().lastIndexOf(".")+1)));
                     }else{
                         PacketDistributor.sendToPlayer((ServerPlayer) context.player(), new ImageNameData(data.id));
                     }
@@ -422,14 +433,16 @@ public class FastScreenshot {
         }
     }
 
-    public record ImageData(byte[] data, String id) implements CustomPacketPayload {
-        public static final Type<ImageData> TYPE = new Type<>(Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, "image"));
+    public record ImageData(byte[] data, String imageId, String imageType) implements CustomPacketPayload {
+        public static final Type<ImageData> TYPE = new Type<>(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "image"));
 
         public static final StreamCodec<ByteBuf, ImageData> STREAM_CODEC = StreamCodec.composite(
                 ByteBufCodecs.BYTE_ARRAY,
                 ImageData::data,
                 ByteBufCodecs.STRING_UTF8,
-                ImageData::id,
+                ImageData::imageId,
+                ByteBufCodecs.STRING_UTF8,
+                ImageData::imageType,
                 ImageData::new
         );
 
@@ -460,15 +473,13 @@ public class FastScreenshot {
 
             public static class ServerPayloadHandler {
                 public static void handleDataOnMain(final ImageData data, final IPayloadContext context) {
-                    File dataDir = new File(Minecraft.getInstance().gameDirectory, "data");
-                    dataDir.mkdir();
-                    File modDataDir = new File(dataDir, QuirkySnapshot.MOD_ID);
+                    File modDataDir = new File(Minecraft.getInstance().gameDirectory, VisualShare.MOD_ID);
                     modDataDir.mkdir();
-                    File fastScrDataDir = new File(modDataDir, "fast-screenshot");
+                    File fastScrDataDir = new File(modDataDir, "fast_screenshot");
                     fastScrDataDir.mkdir();
                     File serverDir = new File(fastScrDataDir, "server");
                     serverDir.mkdir();
-                    File imageData = new File(serverDir, data.id + ".dat");
+                    File imageData = new File(serverDir, data.imageId + "." + data.imageType);
 
                     try (FileOutputStream fos = new FileOutputStream(imageData)) {
                         fos.write(data.data);
@@ -482,15 +493,13 @@ public class FastScreenshot {
 
             public static class ClientPayloadHandler {
                 public static void handleDataOnMain(final ImageData data, final IPayloadContext context) {
-                    File dataDir = new File(Minecraft.getInstance().gameDirectory, "data");
-                    dataDir.mkdir();
-                    File modDataDir = new File(dataDir, QuirkySnapshot.MOD_ID);
+                    File modDataDir = new File(Minecraft.getInstance().gameDirectory, VisualShare.MOD_ID);
                     modDataDir.mkdir();
-                    File fastScrDataDir = new File(modDataDir, "fast-screenshot");
+                    File fastScrDataDir = new File(modDataDir, "fast_screenshot");
                     fastScrDataDir.mkdir();
                     File clientDir = new File(fastScrDataDir, "client");
                     clientDir.mkdir();
-                    File imageData = new File(clientDir, data.id + ".dat");
+                    File imageData = new File(clientDir, data.imageId + "." + data.imageType);
 
                     try (FileOutputStream fos = new FileOutputStream(imageData)) {
                         fos.write(data.data);
@@ -500,12 +509,25 @@ public class FastScreenshot {
 
                     Minecraft.getInstance().execute(() -> {
                         try {
-                            NativeImage image = NativeImage.read(data.data);
+                            NativeImage image = null;
+                            if (data.imageType.equals(Config.DataType.png.getType())) {
+                                image = NativeImage.read(data.data);
+                            }else if (data.imageType.equals(Config.DataType.avif.getType())){
+                                BufferedImage buffer = ImageIO.read(new ByteArrayInputStream(data.data));
+                                image = new NativeImage(buffer.getWidth(), buffer.getHeight(), true);
+                                for (int y = 0 ; y < image.getHeight() ; y++){
+                                    for (int x = 0 ; x < image.getWidth() ; x++){
+                                        image.setPixel(x, y, buffer.getRGB(x, y));
+                                    }
+                                }
+                            }
 
-                            Identifier textureId = Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, data.id);
-                            DynamicTexture texture = new DynamicTexture(textureId::toString, image);
-                            Minecraft.getInstance().getTextureManager().register(textureId, texture);
-                            FastScreenshot.fastScreenshotData.put(data.id, new Pair<>(true, new Vector2i(image.getWidth(), image.getHeight())));
+                            if (image != null) {
+                                Identifier textureId = Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, data.imageId);
+                                DynamicTexture texture = new DynamicTexture(textureId::toString, image);
+                                Minecraft.getInstance().getTextureManager().register(textureId, texture);
+                                FastScreenshot.fastScreenshotData.put(data.imageId, new Pair<>(true, new Vector2i(image.getWidth(), image.getHeight())));
+                            }
                         } catch (IOException e) {
                             LOGGER.error("Error turn data into texture: {}", e.getMessage());
                         }

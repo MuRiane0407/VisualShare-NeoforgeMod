@@ -1,4 +1,4 @@
-package com.muriane.quirkysnapshot.item.custom;
+package com.muriane.visual_share.item.custom;
 
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;

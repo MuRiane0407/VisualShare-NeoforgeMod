@@ -1,15 +1,15 @@
-package com.muriane.quirkysnapshot.fast_screenshot;
+package com.muriane.visual_share.fast_screenshot;
 
-
+import com.github.avifimageio.AvifWriteParam;
 import com.mojang.blaze3d.platform.ClipboardManager;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
-import com.muriane.quirkysnapshot.Config;
-import com.muriane.quirkysnapshot.QuirkySnapshot;
-import com.muriane.quirkysnapshot.key.ModKeys;
-import com.muriane.quirkysnapshot.method.MScreenshot;
+import com.muriane.visual_share.Config;
+import com.muriane.visual_share.VisualShare;
+import com.muriane.visual_share.key.ModKeys;
+import com.muriane.visual_share.method.MScreenshot;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -24,7 +24,10 @@ import net.minecraft.util.Util;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.slf4j.Logger;
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
@@ -34,16 +37,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FastScreenshotScreen extends Screen {
-    private static final WidgetSprites notFindSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, "fast_screenshot/not_find"));
-    private static final WidgetSprites selectionSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, "fast_screenshot/selection"), Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, "fast_screenshot/selection_highlight"));
-    private static final WidgetSprites brushSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, "fast_screenshot/brush"), Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, "fast_screenshot/brush_highlight"));
-    private static final WidgetSprites cutSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, "fast_screenshot/cut"), Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, "fast_screenshot/cut_highlight"));
-    private static final WidgetSprites colorPaletteSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, "fast_screenshot/color_palette"), Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, "fast_screenshot/color_palette_highlight"));
-    private static final WidgetSprites brushSizeSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, "fast_screenshot/brush_size"), Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, "fast_screenshot/brush_size_highlight"));
-    private static final WidgetSprites undoSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, "fast_screenshot/undo"), Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, "fast_screenshot/undo_highlight"));
-    private static final WidgetSprites redoSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, "fast_screenshot/redo"), Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, "fast_screenshot/redo_highlight"));
-    private static final WidgetSprites saveSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, "fast_screenshot/save"), Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, "fast_screenshot/save_highlight"));
-    private static final WidgetSprites shareSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, "fast_screenshot/share"), Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, "fast_screenshot/share_highlight"));
+    private static final WidgetSprites notFindSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "fast_screenshot/not_find"));
+    private static final WidgetSprites selectionSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "fast_screenshot/selection"), Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "fast_screenshot/selection_highlight"));
+    private static final WidgetSprites brushSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "fast_screenshot/brush"), Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "fast_screenshot/brush_highlight"));
+    private static final WidgetSprites cutSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "fast_screenshot/cut"), Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "fast_screenshot/cut_highlight"));
+    private static final WidgetSprites colorPaletteSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "fast_screenshot/color_palette"), Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "fast_screenshot/color_palette_highlight"));
+    private static final WidgetSprites brushSizeSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "fast_screenshot/brush_size"), Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "fast_screenshot/brush_size_highlight"));
+    private static final WidgetSprites undoSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "fast_screenshot/undo"), Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "fast_screenshot/undo_highlight"));
+    private static final WidgetSprites redoSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "fast_screenshot/redo"), Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "fast_screenshot/redo_highlight"));
+    private static final WidgetSprites saveSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "fast_screenshot/save"), Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "fast_screenshot/save_highlight"));
+    private static final WidgetSprites shareSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "fast_screenshot/share"), Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "fast_screenshot/share_highlight"));
 
     private static final Logger LOGGER = LogUtils.getLogger();
     private final Screen lastScreen;
@@ -118,9 +121,9 @@ public class FastScreenshotScreen extends Screen {
                 List.of(new Pair<>(
                                 new Pair<>(selectionSprites,
                                         List.of(
-                                                Component.translatable("button.quirkysnapshot.fast_screenshot.selection.name").withStyle(ChatFormatting.BOLD),
-                                                Component.translatable("button.quirkysnapshot.fast_screenshot.selection.info").withStyle(ChatFormatting.GRAY),
-                                                Component.translatable("button.quirkysnapshot.fast_screenshot.shortcuts", Component.literal(ModKeys.SELECTION.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
+                                                Component.translatable("button.visual_share.fast_screenshot.selection.name").withStyle(ChatFormatting.BOLD),
+                                                Component.translatable("button.visual_share.fast_screenshot.selection.info").withStyle(ChatFormatting.GRAY),
+                                                Component.translatable("button.visual_share.fast_screenshot.shortcuts", Component.literal(ModKeys.SELECTION.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
                                         )
                                 ),
                                 button -> this.setImageInterActionMode(FastScreenshotImageWidget.InteractionMode.SELECTION)
@@ -128,9 +131,9 @@ public class FastScreenshotScreen extends Screen {
                         new Pair<>(
                                 new Pair<>(brushSprites,
                                         List.of(
-                                                Component.translatable("button.quirkysnapshot.fast_screenshot.brush.name").withStyle(ChatFormatting.BOLD),
-                                                Component.translatable("button.quirkysnapshot.fast_screenshot.brush.info").withStyle(ChatFormatting.GRAY),
-                                                Component.translatable("button.quirkysnapshot.fast_screenshot.shortcuts", Component.literal(ModKeys.BRUSH.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
+                                                Component.translatable("button.visual_share.fast_screenshot.brush.name").withStyle(ChatFormatting.BOLD),
+                                                Component.translatable("button.visual_share.fast_screenshot.brush.info").withStyle(ChatFormatting.GRAY),
+                                                Component.translatable("button.visual_share.fast_screenshot.shortcuts", Component.literal(ModKeys.BRUSH.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
                                         )
                                 ),
                                 button -> this.setImageInterActionMode(FastScreenshotImageWidget.InteractionMode.BRUSH)
@@ -149,9 +152,9 @@ public class FastScreenshotScreen extends Screen {
                     new Pair<>(
                             new Pair<>(cutSprites,
                                     List.of(
-                                            Component.translatable("button.quirkysnapshot.fast_screenshot.cut.name").withStyle(ChatFormatting.BOLD),
-                                            Component.translatable("button.quirkysnapshot.fast_screenshot.cut.info").withStyle(ChatFormatting.GRAY),
-                                            Component.translatable("button.quirkysnapshot.fast_screenshot.shortcuts", Component.literal(ModKeys.CUT.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
+                                            Component.translatable("button.visual_share.fast_screenshot.cut.name").withStyle(ChatFormatting.BOLD),
+                                            Component.translatable("button.visual_share.fast_screenshot.cut.info").withStyle(ChatFormatting.GRAY),
+                                            Component.translatable("button.visual_share.fast_screenshot.shortcuts", Component.literal(ModKeys.CUT.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
                                     )
                             ),
                             button -> this.imageCut()
@@ -162,9 +165,9 @@ public class FastScreenshotScreen extends Screen {
                     new Pair<>(
                             new Pair<>(colorPaletteSprites,
                                     List.of(
-                                            Component.translatable("button.quirkysnapshot.fast_screenshot.color_palette.name").withStyle(ChatFormatting.BOLD),
-                                            Component.translatable("button.quirkysnapshot.fast_screenshot.color_palette.info").withStyle(ChatFormatting.GRAY),
-                                            Component.translatable("button.quirkysnapshot.fast_screenshot.shortcuts", Component.literal(ModKeys.COLOR_PALETTE.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
+                                            Component.translatable("button.visual_share.fast_screenshot.color_palette.name").withStyle(ChatFormatting.BOLD),
+                                            Component.translatable("button.visual_share.fast_screenshot.color_palette.info").withStyle(ChatFormatting.GRAY),
+                                            Component.translatable("button.visual_share.fast_screenshot.shortcuts", Component.literal(ModKeys.COLOR_PALETTE.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
                                     )
                             ),
                             button -> this.imageColorPalette()
@@ -172,9 +175,9 @@ public class FastScreenshotScreen extends Screen {
                     new Pair<>(
                             new Pair<>(brushSizeSprites,
                                     List.of(
-                                            Component.translatable("button.quirkysnapshot.fast_screenshot.brush_size.name").withStyle(ChatFormatting.BOLD),
-                                            Component.translatable("button.quirkysnapshot.fast_screenshot.brush_size.info").withStyle(ChatFormatting.GRAY),
-                                            Component.translatable("button.quirkysnapshot.fast_screenshot.shortcuts", Component.literal(ModKeys.BRUSH_SIZE.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
+                                            Component.translatable("button.visual_share.fast_screenshot.brush_size.name").withStyle(ChatFormatting.BOLD),
+                                            Component.translatable("button.visual_share.fast_screenshot.brush_size.info").withStyle(ChatFormatting.GRAY),
+                                            Component.translatable("button.visual_share.fast_screenshot.shortcuts", Component.literal(ModKeys.BRUSH_SIZE.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
                                     )
                             ),
                             button -> this.imageBrushSize()
@@ -195,9 +198,9 @@ public class FastScreenshotScreen extends Screen {
                         new Pair<>(
                                 new Pair<>(saveSprites,
                                         List.of(
-                                                Component.translatable("button.quirkysnapshot.fast_screenshot.save.name").withStyle(ChatFormatting.BOLD),
-                                                Component.translatable("button.quirkysnapshot.fast_screenshot.save.info").withStyle(ChatFormatting.GRAY),
-                                                Component.translatable("button.quirkysnapshot.fast_screenshot.shortcuts", Component.literal("Ctrl"+"+"+ModKeys.SAVE.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
+                                                Component.translatable("button.visual_share.fast_screenshot.save.name").withStyle(ChatFormatting.BOLD),
+                                                Component.translatable("button.visual_share.fast_screenshot.save.info").withStyle(ChatFormatting.GRAY),
+                                                Component.translatable("button.visual_share.fast_screenshot.shortcuts", Component.literal("Ctrl"+"+"+ModKeys.SAVE.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
                                         )
                                 ),
                                 button -> this.imageSave()
@@ -205,9 +208,9 @@ public class FastScreenshotScreen extends Screen {
                         new Pair<>(
                                 new Pair<>(shareSprites,
                                         List.of(
-                                                Component.translatable("button.quirkysnapshot.fast_screenshot.share.name").withStyle(ChatFormatting.BOLD),
-                                                Component.translatable("button.quirkysnapshot.fast_screenshot.share.info").withStyle(ChatFormatting.GRAY),
-                                                Component.translatable("button.quirkysnapshot.fast_screenshot.shortcuts", Component.literal("Ctrl"+"+"+ModKeys.SHARE.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
+                                                Component.translatable("button.visual_share.fast_screenshot.share.name").withStyle(ChatFormatting.BOLD),
+                                                Component.translatable("button.visual_share.fast_screenshot.share.info").withStyle(ChatFormatting.GRAY),
+                                                Component.translatable("button.visual_share.fast_screenshot.shortcuts", Component.literal("Ctrl"+"+"+ModKeys.SHARE.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
                                         )
                                 ),
                                 button -> this.imageShare()
@@ -215,9 +218,9 @@ public class FastScreenshotScreen extends Screen {
                         new Pair<>(
                                 new Pair<>(undoSprites,
                                         List.of(
-                                                Component.translatable("button.quirkysnapshot.fast_screenshot.undo.name").withStyle(ChatFormatting.BOLD),
-                                                Component.translatable("button.quirkysnapshot.fast_screenshot.undo.info").withStyle(ChatFormatting.GRAY),
-                                                Component.translatable("button.quirkysnapshot.fast_screenshot.shortcuts", Component.literal("Ctrl"+"+"+ModKeys.UNDO_REDO.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
+                                                Component.translatable("button.visual_share.fast_screenshot.undo.name").withStyle(ChatFormatting.BOLD),
+                                                Component.translatable("button.visual_share.fast_screenshot.undo.info").withStyle(ChatFormatting.GRAY),
+                                                Component.translatable("button.visual_share.fast_screenshot.shortcuts", Component.literal("Ctrl"+"+"+ModKeys.UNDO_REDO.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
                                         )
                                 ),
                                 button -> this.imageUndo()
@@ -225,9 +228,9 @@ public class FastScreenshotScreen extends Screen {
                         new Pair<>(
                                 new Pair<>(redoSprites,
                                         List.of(
-                                                Component.translatable("button.quirkysnapshot.fast_screenshot.redo.name").withStyle(ChatFormatting.BOLD),
-                                                Component.translatable("button.quirkysnapshot.fast_screenshot.redo.info").withStyle(ChatFormatting.GRAY),
-                                                Component.translatable("button.quirkysnapshot.fast_screenshot.shortcuts", Component.literal("Ctrl"+"+"+"Shift"+"+"+ModKeys.UNDO_REDO.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
+                                                Component.translatable("button.visual_share.fast_screenshot.redo.name").withStyle(ChatFormatting.BOLD),
+                                                Component.translatable("button.visual_share.fast_screenshot.redo.info").withStyle(ChatFormatting.GRAY),
+                                                Component.translatable("button.visual_share.fast_screenshot.shortcuts", Component.literal("Ctrl"+"+"+"Shift"+"+"+ModKeys.UNDO_REDO.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
                                         )
                                 ),
                                 button -> this.imageRedo()
@@ -311,7 +314,7 @@ public class FastScreenshotScreen extends Screen {
         if (newImage != null){
             this.addNewImage(newImage);
         }else{
-            this.tip = Component.translatable("tip.quirkysnapshot.fast_screenshot.no_selection_or_too_small").withStyle(ChatFormatting.RED);
+            this.tip = Component.translatable("tip.visual_share.fast_screenshot.no_selection_or_too_small").withStyle(ChatFormatting.RED);
         }
         this.reload();
     }
@@ -338,7 +341,7 @@ public class FastScreenshotScreen extends Screen {
         if (this.step > 0){
             this.step -= 1;
         }else{
-            this.tip = Component.translatable("tip.quirkysnapshot.fast_screenshot.cant_undo").withStyle(ChatFormatting.RED);
+            this.tip = Component.translatable("tip.visual_share.fast_screenshot.cant_undo").withStyle(ChatFormatting.RED);
         }
         this.reload();
     }
@@ -347,7 +350,7 @@ public class FastScreenshotScreen extends Screen {
         if (this.step < this.imageHistory.size()-1){
             this.step += 1;
         }else{
-            this.tip = Component.translatable("tip.quirkysnapshot.fast_screenshot.cant_redo").withStyle(ChatFormatting.RED);
+            this.tip = Component.translatable("tip.visual_share.fast_screenshot.cant_redo").withStyle(ChatFormatting.RED);
         }
         this.reload();
     }
@@ -357,9 +360,9 @@ public class FastScreenshotScreen extends Screen {
         String imageId = MScreenshot.getImageId(this.imageHistory.get(this.step));
         File scrDir = new File(mc.gameDirectory, "screenshots");
         scrDir.mkdir();
-        File modScrDir = new File(scrDir, QuirkySnapshot.MOD_ID);
+        File modScrDir = new File(scrDir, VisualShare.MOD_ID);
         modScrDir.mkdir();
-        File fastScrDir = new File(modScrDir, "fast-screenshot");
+        File fastScrDir = new File(modScrDir, "fast_screenshot");
         fastScrDir.mkdir();
         File file = new File(fastScrDir, imageId + ".png");
 
@@ -367,23 +370,25 @@ public class FastScreenshotScreen extends Screen {
                 () -> {
                     try {
                         this.imageHistory.get(this.step).writeToFile(file);
-                        this.tip = Component.translatable("tip.quirkysnapshot.fast_screenshot.success_save",
+                        this.tip = Component.translatable("tip.visual_share.fast_screenshot.success_save",
                                 Component.literal(imageId)
                                         .withStyle(ChatFormatting.UNDERLINE)
                                         .withStyle(style -> style.withClickEvent(new ClickEvent.OpenFile(file)))); // 然而界面内点了没用（或者可能是我的渲染方式点了没用）
                     } catch (Exception e) {
                         LOGGER.error("Couldn't save image {}", e.getMessage());
-                        this.tip = Component.translatable("tip.quirkysnapshot.fast_screenshot.cant_save", e).withStyle(ChatFormatting.RED);
+                        this.tip = Component.translatable("tip.visual_share.fast_screenshot.cant_save", e).withStyle(ChatFormatting.RED);
                     }
                     this.reload();
                 });
     }
 
-    public void imageShare(){ // jpg压缩 压缩比高但显示效果差 | png压缩 压缩比低但显示效果好
+    public void imageShare(){
         String prefix = Config.SERVER.FAST_SCREENSHOT_SHARE_PREFIX.get();
         String subfix = Config.SERVER.FAST_SCREENSHOT_SHARE_SUBFIX.get();
+        Config.OverrideMode overrideMode = Config.SERVER.FAST_SCREENSHOT_SHARE_OVERRIDE_CLIENT_PARAM.get();
 
         NativeImage image = this.imageHistory.get(this.step);
+        String textureId = MScreenshot.getImageId(image);
 
         BufferedImage buffer = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
         for (int y = 0; y < image.getHeight(); y++) {
@@ -400,27 +405,66 @@ public class FastScreenshotScreen extends Screen {
             int width = (int) (image.getWidth()*scale);
             int height = (int) (image.getHeight()*scale);
 
-            java.awt.Image scaledImage = buffer.getScaledInstance(width, height, Config.CLIENT.FAST_SCREENSHOT_SHARE_INTERPOLATION_ALGORITHM.get().getAlgorithm());
+            java.awt.Image scaledImage = buffer.getScaledInstance(width, height, overrideMode != Config.OverrideMode.NO ? Config.SERVER.FAST_SCREENSHOT_SHARE_INTERPOLATION_ALGORITHM.get().getAlgorithm() : Config.CLIENT.FAST_SCREENSHOT_SHARE_INTERPOLATION_ALGORITHM.get().getAlgorithm());
             buffer = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
             Graphics2D graphics = buffer.createGraphics();
             graphics.drawImage(scaledImage, 0, 0, null);
             graphics.dispose();
         }
 
-        String type = Config.SERVER.FAST_SCREENSHOT_SHARE_DATA_TYPE.get().getType();
+        Config.DataType type = overrideMode != Config.OverrideMode.NO ? Config.SERVER.FAST_SCREENSHOT_SHARE_DATA_TYPE.get() : Config.CLIENT.FAST_SCREENSHOT_SHARE_DATA_TYPE.get();
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        try {
-            ImageIO.write(buffer, type, outputStream);
-        }catch (IOException e){
-            LOGGER.error("Error write to {}: {}", type, e.getMessage());
+        if (type.equals(Config.DataType.png)) {
+            try{
+                ImageIO.write(buffer, type.getType(), outputStream);
+                LOGGER.info("Share image {}: png", textureId);
+            } catch (IOException e) {
+                LOGGER.error("Error write to {}: {}", type, e.getMessage());
+            }
+        }
+        else if (type.equals(Config.DataType.avif)){
+            ImageWriter writer = ImageIO.getImageWritersByFormatName("avif").next();
+            AvifWriteParam param = (AvifWriteParam) writer.getDefaultWriteParam();
+
+            int quality, speed;
+            boolean lossless;
+            if (overrideMode == Config.OverrideMode.ALL){
+                quality = Config.SERVER.FAST_SCREENSHOT_SHARE_AVIF_QUALITY.get();
+                speed = Config.SERVER.FAST_SCREENSHOT_SHARE_AVIF_SPEED.get();
+                lossless = Config.SERVER.FAST_SCREENSHOT_SHARE_AVIF_LOSSLESS.get();
+            }else if (overrideMode == Config.OverrideMode.MAX){
+                quality = Math.min(Config.SERVER.FAST_SCREENSHOT_SHARE_AVIF_QUALITY.get(), Config.CLIENT.FAST_SCREENSHOT_SHARE_AVIF_QUALITY.get());
+                speed = Math.min(Config.SERVER.FAST_SCREENSHOT_SHARE_AVIF_SPEED.get(), Config.CLIENT.FAST_SCREENSHOT_SHARE_AVIF_SPEED.get());
+                lossless = Config.SERVER.FAST_SCREENSHOT_SHARE_AVIF_LOSSLESS.get() && Config.CLIENT.FAST_SCREENSHOT_SHARE_AVIF_LOSSLESS.get();
+            }else if (overrideMode == Config.OverrideMode.MIN){
+                quality = Math.max(Config.SERVER.FAST_SCREENSHOT_SHARE_AVIF_QUALITY.get(), Config.CLIENT.FAST_SCREENSHOT_SHARE_AVIF_QUALITY.get());
+                speed = Math.max(Config.SERVER.FAST_SCREENSHOT_SHARE_AVIF_SPEED.get(), Config.CLIENT.FAST_SCREENSHOT_SHARE_AVIF_SPEED.get());
+                lossless = Config.SERVER.FAST_SCREENSHOT_SHARE_AVIF_LOSSLESS.get() || Config.CLIENT.FAST_SCREENSHOT_SHARE_AVIF_LOSSLESS.get();
+            }else{
+                quality = Config.CLIENT.FAST_SCREENSHOT_SHARE_AVIF_QUALITY.get();
+                speed = Config.CLIENT.FAST_SCREENSHOT_SHARE_AVIF_SPEED.get();
+                lossless = Config.CLIENT.FAST_SCREENSHOT_SHARE_AVIF_LOSSLESS.get();
+            }
+
+            param.setQuality(quality); // 0-100，默认 75
+            param.setSpeed(speed); // 0-10，默认 6（越高越快）
+            param.setLossless(lossless); // true 为无损编码
+
+            try (ImageOutputStream ios = ImageIO.createImageOutputStream(outputStream)){
+                writer.setOutput(ios);
+                writer.write(null, new IIOImage(buffer, null, null), param);
+            }catch (IOException e){
+                LOGGER.error("Error write to {}: {}", type, e.getMessage());
+            }
+            writer.dispose();
+            LOGGER.info("Share image {}: avif quality:{} speed:{} lossless:{}", textureId, quality, speed, lossless);
         }
 
-        String textureId = MScreenshot.getImageId(image);
         ClipboardManager clipboard = new ClipboardManager();
         clipboard.setClipboard(this.minecraft.getWindow(), prefix + textureId + subfix);
-        this.tip = Component.translatable("tip.quirkysnapshot.fast_screenshot.share");
+        this.tip = Component.translatable("tip.visual_share.fast_screenshot.share");
 
-        ClientPacketDistributor.sendToServer(new FastScreenshot.ImageData(outputStream.toByteArray(), textureId));
+        ClientPacketDistributor.sendToServer(new FastScreenshot.ImageData(outputStream.toByteArray(), textureId, type.getType()));
         this.reload();
     }
 

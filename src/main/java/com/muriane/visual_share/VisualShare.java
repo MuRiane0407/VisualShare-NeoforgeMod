@@ -1,6 +1,6 @@
-package com.muriane.quirkysnapshot;
+package com.muriane.visual_share;
 
-import com.muriane.quirkysnapshot.item.ModItems;
+import com.muriane.visual_share.item.ModItems;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
@@ -11,11 +11,11 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 
 // The value here should match an entry in the META-INF/neoforge.mods.toml file
-@Mod(QuirkySnapshot.MOD_ID)
-public class QuirkySnapshot {
-    public static final String MOD_ID = "quirkysnapshot";
+@Mod(VisualShare.MOD_ID)
+public class VisualShare {
+    public static final String MOD_ID = "visual_share";
 
-    public QuirkySnapshot(IEventBus modEventBus, ModContainer modContainer) {
+    public VisualShare(IEventBus modEventBus, ModContainer modContainer) {
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
 

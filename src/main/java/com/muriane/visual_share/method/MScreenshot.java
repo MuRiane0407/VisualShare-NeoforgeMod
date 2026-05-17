@@ -1,4 +1,4 @@
-package com.muriane.quirkysnapshot.method;
+package com.muriane.visual_share.method;
 
 import com.mojang.blaze3d.buffers.GpuBuffer;
 import com.mojang.blaze3d.pipeline.RenderTarget;

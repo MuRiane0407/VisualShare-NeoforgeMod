@@ -1,6 +1,6 @@
 {
   "required": true,
-  "package": "com.muriane.quirkysnapshot.mixin",
+  "package": "com.muriane.visual_share.mixin",
   "compatibilityLevel": "JAVA_25",
   "mixins": [],
   "injectors": {

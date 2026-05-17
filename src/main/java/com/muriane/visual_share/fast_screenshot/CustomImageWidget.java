@@ -1,4 +1,4 @@
-package com.muriane.quirkysnapshot.fast_screenshot;
+package com.muriane.visual_share.fast_screenshot;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.platform.Window;

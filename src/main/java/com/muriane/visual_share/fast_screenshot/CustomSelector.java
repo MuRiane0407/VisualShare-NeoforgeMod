@@ -1,6 +1,6 @@
-package com.muriane.quirkysnapshot.fast_screenshot;
+package com.muriane.visual_share.fast_screenshot;
 
-import com.muriane.quirkysnapshot.QuirkySnapshot;
+import com.muriane.visual_share.VisualShare;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.WidgetSprites;
@@ -11,7 +11,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 
 public class CustomSelector extends AbstractWidget {
-    private static final WidgetSprites selector = new WidgetSprites(Identifier.fromNamespaceAndPath(QuirkySnapshot.MOD_ID, "fast_screenshot/selector"));
+    private static final WidgetSprites selector = new WidgetSprites(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "fast_screenshot/selector"));
     protected final int spriteWidth;
     protected final int spriteHeight;
     protected final SelectorCallback callback;
