@@ -23,6 +23,8 @@ public class Config {
     public static class Server {
         public final ModConfigSpec.EnumValue<DataType> FAST_SCREENSHOT_SHARE_DATA_TYPE;
         public final ModConfigSpec.IntValue FAST_SCREENSHOT_SHARE_MAX_SIZE;
+        public final ModConfigSpec.ConfigValue<String> FAST_SCREENSHOT_SHARE_PREFIX;
+        public final ModConfigSpec.ConfigValue<String> FAST_SCREENSHOT_SHARE_SUBFIX;
 
         Server(ModConfigSpec.Builder builder){
             builder.push("fast_screenshot");
@@ -32,6 +34,12 @@ public class Config {
             FAST_SCREENSHOT_SHARE_MAX_SIZE = builder
                     .translation("quirkysnapshot.configuration.fast_screenshot.share.max_size")
                     .defineInRange("fast_screenshot.share.max_size", 512, -1, 32768);
+            FAST_SCREENSHOT_SHARE_PREFIX = builder
+                    .translation("quirkysnapshot.configuration.fast_screenshot.share.prefix")
+                    .define("fast_screenshot.share.prefix", "<qs_fs>");
+            FAST_SCREENSHOT_SHARE_SUBFIX = builder
+                    .translation("quirkysnapshot.configuration.fast_screenshot.share.subfix")
+                    .define("fast_screenshot.share.subfix", "</qs_fs>");
             builder.pop();
         }
 

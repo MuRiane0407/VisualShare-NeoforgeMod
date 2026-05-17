@@ -114,30 +114,38 @@ public class FastScreenshotScreen extends Screen {
 
     private List<AbstractWidget> initButtons(int guiScale, Window window) {
         List<AbstractWidget> buttons = new ArrayList<>();
-        List<Pair<Pair<WidgetSprites, List<Component>>, Button.OnPress>> leftList = new ArrayList<>(List.of(
-                new Pair<>(
-                        new Pair<>(selectionSprites,
-                                List.of(
-                                        Component.translatable("button.quirkysnapshot.fast_screenshot.selection.name").withStyle(ChatFormatting.BOLD),
-                                        Component.translatable("button.quirkysnapshot.fast_screenshot.selection.info").withStyle(ChatFormatting.GRAY),
-                                        Component.translatable("button.quirkysnapshot.fast_screenshot.shortcuts", Component.literal(ModKeys.SELECTION.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
-                                )
+        List<Pair<Pair<WidgetSprites, List<Component>>, Button.OnPress>> leftModeList = new ArrayList<>(
+                List.of(new Pair<>(
+                                new Pair<>(selectionSprites,
+                                        List.of(
+                                                Component.translatable("button.quirkysnapshot.fast_screenshot.selection.name").withStyle(ChatFormatting.BOLD),
+                                                Component.translatable("button.quirkysnapshot.fast_screenshot.selection.info").withStyle(ChatFormatting.GRAY),
+                                                Component.translatable("button.quirkysnapshot.fast_screenshot.shortcuts", Component.literal(ModKeys.SELECTION.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
+                                        )
+                                ),
+                                button -> this.setImageInterActionMode(FastScreenshotImageWidget.InteractionMode.SELECTION)
                         ),
-                        button -> this.setImageInterActionMode(FastScreenshotImageWidget.InteractionMode.SELECTION)
-                ),
-                new Pair<>(
-                        new Pair<>(brushSprites,
-                                List.of(
-                                        Component.translatable("button.quirkysnapshot.fast_screenshot.brush.name").withStyle(ChatFormatting.BOLD),
-                                        Component.translatable("button.quirkysnapshot.fast_screenshot.brush.info").withStyle(ChatFormatting.GRAY),
-                                        Component.translatable("button.quirkysnapshot.fast_screenshot.shortcuts", Component.literal(ModKeys.BRUSH.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
-                                )
-                        ),
-                        button -> this.setImageInterActionMode(FastScreenshotImageWidget.InteractionMode.BRUSH)
-                )
-        ));
+                        new Pair<>(
+                                new Pair<>(brushSprites,
+                                        List.of(
+                                                Component.translatable("button.quirkysnapshot.fast_screenshot.brush.name").withStyle(ChatFormatting.BOLD),
+                                                Component.translatable("button.quirkysnapshot.fast_screenshot.brush.info").withStyle(ChatFormatting.GRAY),
+                                                Component.translatable("button.quirkysnapshot.fast_screenshot.shortcuts", Component.literal(ModKeys.BRUSH.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
+                                        )
+                                ),
+                                button -> this.setImageInterActionMode(FastScreenshotImageWidget.InteractionMode.BRUSH)
+                        ))
+        );
+        int leftModeButtonListHeight = 32*leftModeList.size()*guiScale;
+        CustomImageButton.ImageButtonList leftModeButtonList = new CustomImageButton.ImageButtonList(
+                0.125f, -6-32*guiScale, 0.125f, 0, 0, 32*guiScale, 0, leftModeButtonListHeight,
+                guiScale, window,
+                leftModeList
+        );
+
+        List<Pair<Pair<WidgetSprites, List<Component>>, Button.OnPress>> leftFunctionList = new ArrayList<>();
         if (this.imageInteractionMode == FastScreenshotImageWidget.InteractionMode.SELECTION){
-            leftList.add(
+            leftFunctionList.add(
                     new Pair<>(
                             new Pair<>(cutSprites,
                                     List.of(
@@ -150,7 +158,7 @@ public class FastScreenshotScreen extends Screen {
                     )
             );
         }else if (this.imageInteractionMode == FastScreenshotImageWidget.InteractionMode.BRUSH){
-            leftList.addAll(List.of(
+            leftFunctionList.addAll(List.of(
                     new Pair<>(
                             new Pair<>(colorPaletteSprites,
                                     List.of(
@@ -173,34 +181,14 @@ public class FastScreenshotScreen extends Screen {
                     )
             ));
         }
-        leftList.addAll(List.of(
-                new Pair<>(
-                        new Pair<>(undoSprites,
-                                List.of(
-                                        Component.translatable("button.quirkysnapshot.fast_screenshot.undo.name").withStyle(ChatFormatting.BOLD),
-                                        Component.translatable("button.quirkysnapshot.fast_screenshot.undo.info").withStyle(ChatFormatting.GRAY),
-                                        Component.translatable("button.quirkysnapshot.fast_screenshot.shortcuts", Component.literal("Ctrl"+"+"+ModKeys.UNDO_REDO.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
-                                )
-                        ),
-                        button -> this.imageUndo()
-                ),
-                new Pair<>(
-                        new Pair<>(redoSprites,
-                                List.of(
-                                        Component.translatable("button.quirkysnapshot.fast_screenshot.redo.name").withStyle(ChatFormatting.BOLD),
-                                        Component.translatable("button.quirkysnapshot.fast_screenshot.redo.info").withStyle(ChatFormatting.GRAY),
-                                        Component.translatable("button.quirkysnapshot.fast_screenshot.shortcuts", Component.literal("Ctrl"+"+"+"Shift"+"+"+ModKeys.UNDO_REDO.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
-                                )
-                        ),
-                        button -> this.imageRedo()
-                )
-        ));
-        CustomImageButton.ImageButtonList leftImageButtonList = new CustomImageButton.ImageButtonList(
-                0.125f, -6-32*guiScale, 0.125f, 0, 0, 32*guiScale, 0.75f, 0,
+        int leftFunctionButtonListHeightOffset = leftModeButtonListHeight;
+        CustomImageButton.ImageButtonList leftFunctionButtonList = new CustomImageButton.ImageButtonList(
+                0.125f, -6-32*guiScale, 0.125f, leftFunctionButtonListHeightOffset, 0, 32*guiScale, 0.75f, -leftFunctionButtonListHeightOffset,
                 guiScale, window,
-                leftList
+                leftFunctionList
         );
-        CustomImageButton.ImageButtonList rightImageButtonList = new CustomImageButton.ImageButtonList(
+
+        CustomImageButton.ImageButtonList rightFunctionButtonList = new CustomImageButton.ImageButtonList(
                 0.875f, 6, 0.125f, 0, 0, 32*guiScale, 0.75f, 0,
                 guiScale, window,
                 List.of(
@@ -223,11 +211,32 @@ public class FastScreenshotScreen extends Screen {
                                         )
                                 ),
                                 button -> this.imageShare()
+                        ),
+                        new Pair<>(
+                                new Pair<>(undoSprites,
+                                        List.of(
+                                                Component.translatable("button.quirkysnapshot.fast_screenshot.undo.name").withStyle(ChatFormatting.BOLD),
+                                                Component.translatable("button.quirkysnapshot.fast_screenshot.undo.info").withStyle(ChatFormatting.GRAY),
+                                                Component.translatable("button.quirkysnapshot.fast_screenshot.shortcuts", Component.literal("Ctrl"+"+"+ModKeys.UNDO_REDO.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
+                                        )
+                                ),
+                                button -> this.imageUndo()
+                        ),
+                        new Pair<>(
+                                new Pair<>(redoSprites,
+                                        List.of(
+                                                Component.translatable("button.quirkysnapshot.fast_screenshot.redo.name").withStyle(ChatFormatting.BOLD),
+                                                Component.translatable("button.quirkysnapshot.fast_screenshot.redo.info").withStyle(ChatFormatting.GRAY),
+                                                Component.translatable("button.quirkysnapshot.fast_screenshot.shortcuts", Component.literal("Ctrl"+"+"+"Shift"+"+"+ModKeys.UNDO_REDO.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
+                                        )
+                                ),
+                                button -> this.imageRedo()
                         )
                 )
         );
-        buttons.addAll(leftImageButtonList.getButtonsInColumn());
-        buttons.addAll(rightImageButtonList.getButtonsInColumn());
+        buttons.addAll(leftModeButtonList.getButtonsInColumn());
+        buttons.addAll(leftFunctionButtonList.getButtonsInColumn());
+        buttons.addAll(rightFunctionButtonList.getButtonsInColumn());
         return buttons;
     }
 
@@ -371,6 +380,9 @@ public class FastScreenshotScreen extends Screen {
     }
 
     public void imageShare(){ // jpg压缩 压缩比高但显示效果差 | png压缩 压缩比低但显示效果好
+        String prefix = Config.SERVER.FAST_SCREENSHOT_SHARE_PREFIX.get();
+        String subfix = Config.SERVER.FAST_SCREENSHOT_SHARE_SUBFIX.get();
+
         NativeImage image = this.imageHistory.get(this.step);
 
         BufferedImage buffer = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
@@ -405,7 +417,7 @@ public class FastScreenshotScreen extends Screen {
 
         String textureId = MScreenshot.getImageId(image);
         ClipboardManager clipboard = new ClipboardManager();
-        clipboard.setClipboard(this.minecraft.getWindow(), FastScreenshot.FastScreenshotHolder.startMark + textureId + FastScreenshot.FastScreenshotHolder.endMark);
+        clipboard.setClipboard(this.minecraft.getWindow(), prefix + textureId + subfix);
         this.tip = Component.translatable("tip.quirkysnapshot.fast_screenshot.share");
 
         ClientPacketDistributor.sendToServer(new FastScreenshot.ImageData(outputStream.toByteArray(), textureId));
