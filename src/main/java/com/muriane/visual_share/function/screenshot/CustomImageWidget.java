@@ -2,14 +2,19 @@ package com.muriane.visual_share.function.screenshot;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.platform.Window;
+import com.muriane.visual_share.VisualShare;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.Identifier;
 
 public class CustomImageWidget extends AbstractWidget {
     protected NativeImage image;
+    protected DynamicTexture imageTexture;
     protected int interactionOffset = 2;
 
     public CustomImageWidget(float xPercent, float yPercent, float widthPercent, float heightPercent, int guiScale, Window window, NativeImage image) {
@@ -18,11 +23,11 @@ public class CustomImageWidget extends AbstractWidget {
     public CustomImageWidget(int x, int y, int width, int height, NativeImage image) {
         super(x, y, width, height, Component.empty());
         this.image = image;
+        this.imageTexture = new DynamicTexture(this.image::toString, this.image);
     }
 
     protected void extractWidgetRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float a) {
-        DynamicTexture texture = new DynamicTexture(image::toString, image);
-        graphics.blit(texture.getTextureView(), texture.getSampler(), this.getX(), this.getY(), this.getRight(), this.getBottom(), 0, 1, 0, 1);
+        graphics.blit(this.imageTexture.getTextureView(), this.imageTexture.getSampler(), this.getX(), this.getY(), this.getRight(), this.getBottom(), 0, 1, 0, 1);
     }
 
     @Override

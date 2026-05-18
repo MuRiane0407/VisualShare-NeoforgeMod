@@ -3,13 +3,19 @@ package com.muriane.visual_share.function.screenshot;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.logging.LogUtils;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.renderer.texture.DynamicTexture;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.EventBusSubscriber;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2i;
 import org.slf4j.Logger;
 
 import java.awt.*;
+import java.util.concurrent.CompletableFuture;
 
 public class ScreenshotImageWidget extends CustomImageWidget{
     private final Logger LOGGER = LogUtils.getLogger();
@@ -21,6 +27,7 @@ public class ScreenshotImageWidget extends CustomImageWidget{
     protected Color brushColor;
     protected float brushSize;
     protected Vector2i brushLastPoint = null;
+    protected boolean needRerender;
 
     public ScreenshotImageWidget(NativeImage image, float xPercent, float yPercent, float widthPercent, float heightPercent, int guiScale, @NotNull Window window, InteractionMode mode, float[] hsv, float brushSize, ImageCallback callback) {
         super((int) (window.getWidth()*xPercent)/guiScale, (int) (window.getHeight()*yPercent)/guiScale, (int) ((float) image.getWidth()*widthPercent/guiScale), (int) ((float) image.getHeight()*heightPercent/guiScale), image);
@@ -132,6 +139,11 @@ public class ScreenshotImageWidget extends CustomImageWidget{
                 }
             }
         }
+        this.needRerender = true;
+    }
+
+    public void reloadImage(){
+        this.imageTexture = new DynamicTexture(this.image::toString, this.image);
     }
 
     public NativeImage cutImageWithSelection(){
@@ -209,11 +221,35 @@ public class ScreenshotImageWidget extends CustomImageWidget{
         this.mode = mode;
     }
 
+    public boolean needRerender(){
+        return this.needRerender;
+    }
+
+    public void setNeedRerender(boolean need){
+        this.needRerender = need;
+    }
+
     public interface ImageCallback{
         void onSendingImage(NativeImage image);
     }
 
     public enum InteractionMode{
         SELECTION, BRUSH;
+    }
+
+    @EventBusSubscriber
+    public static class imageHolder{
+        @SubscribeEvent
+        public static void onTick(ClientTickEvent.Pre event){
+            if (Minecraft.getInstance().screen != null && Minecraft.getInstance().screen == Screenshot.screenshotScreen){
+                ScreenshotImageWidget imageWidget = Screenshot.screenshotScreen.getImageWidget();
+                if (imageWidget != null){
+                    if (imageWidget.needRerender()) {
+                        imageWidget.reloadImage();
+                        imageWidget.setNeedRerender(false);
+                    }
+                }
+            }
+        }
     }
 }

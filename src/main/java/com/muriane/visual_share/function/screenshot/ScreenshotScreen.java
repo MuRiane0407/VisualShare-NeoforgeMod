@@ -485,6 +485,10 @@ public class ScreenshotScreen extends Screen {
         this.tip = tip;
     }
 
+    public ScreenshotImageWidget getImageWidget(){
+        return this.imageWidget;
+    }
+
     public void addNewImage(NativeImage newImage){
         if (this.imageHistory.size() == this.step+1) {
             this.imageHistory.add(newImage);
