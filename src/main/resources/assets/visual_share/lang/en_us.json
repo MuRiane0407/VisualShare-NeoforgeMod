@@ -63,7 +63,7 @@
   "visual_share.configuration.share_param.tooltip": "Share param settings, whether it takes effect or not is related to \"Override Client Param\" on the server",
 
   "visual_share.configuration.screenshot.share.override_client_param": "Override Client Param",
-  "visual_share.configuration.screenshot.share.override_client_param.tooltip": "Select the state in which the params are overridden\n§7NO: Never override\n§7MAX: If the client params is bigger\n§7MIN: If the client params is smaller\nALWAYS: Always override",
+  "visual_share.configuration.screenshot.share.override_client_param.tooltip": "Select the state in which the params are overridden\nWhen you don't want the image to be uploaded and uploaded too large, you can use this setting to indirectly restrict it\n§7NO: Never override\n§7MAX: If the client params is bigger\n§7MIN: If the client params is smaller\nALWAYS: Always override",
   "visual_share.configuration.screenshot.share_data_type": "Share Data Type",
   "visual_share.configuration.screenshot.share_data_type.tooltip": "The type shared image use\n§7PNG: Commonly used lossless compression format\n§7AVIF: Better than PNG",
   "visual_share.configuration.screenshot.share_param.avif_quality": "AVIF Quality",
@@ -78,6 +78,8 @@
   "visual_share.configuration.screenshot.share.thumbnail_image_size.tooltip": "The percent of screen size of thumbnail image, when you looking at image without pressing SHIFT",
   "visual_share.configuration.screenshot.share.full_image_size": "Full Image Size",
   "visual_share.configuration.screenshot.share.full_image_size.tooltip": "The percent of screen size of full image, when you looking at image with pressing SHIFT",
+  "visual_share.configuration.screenshot.auto_close_sidebar": "Auto Close Sidebar",
+  "visual_share.configuration.screenshot.auto_close_sidebar.tooltip": "When you editing the image, automatically close the sidebar",
   "visual_share.configuration.screenshot.share.max_size": "Max Size",
   "visual_share.configuration.screenshot.share.max_size.tooltip": "The maximum side length of the shared image",
   "visual_share.configuration.screenshot.share.cooldown": "Cooldown",

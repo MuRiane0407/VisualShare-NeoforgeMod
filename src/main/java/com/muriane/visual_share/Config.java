@@ -85,9 +85,11 @@ public class Config {
         public final ModConfigSpec.EnumValue<InterpolationAlgorithm> SCREENSHOT_SHARE_INTERPOLATION_ALGORITHM;
         public final ModConfigSpec.DoubleValue SCREENSHOT_SHARE_THUMBNAIL_IMAGE_SIZE;
         public final ModConfigSpec.DoubleValue SCREENSHOT_SHARE_FULL_IMAGE_SIZE;
+        public final ModConfigSpec.BooleanValue SCREENSHOT_AUTO_CLOSE_SIDEBAR;
 
         Client(ModConfigSpec.Builder builder){
             builder.push("screenshot");
+
             builder.push("share");
             SCREENSHOT_SHARE_DATA_TYPE = builder
                     .translation("visual_share.configuration.screenshot.share_data_type")
@@ -115,6 +117,11 @@ public class Config {
                     .translation("visual_share.configuration.screenshot.share.full_image_size")
                     .defineInRange("full_image_size", 0.75, 0, 1);
             builder.pop();
+
+            SCREENSHOT_AUTO_CLOSE_SIDEBAR = builder
+                    .translation("visual_share.configuration.screenshot.auto_close_sidebar")
+                    .define("auto_close_sidebar", false);
+
             builder.pop();
         }
     }

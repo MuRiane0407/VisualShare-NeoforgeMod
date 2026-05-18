@@ -3,6 +3,7 @@ package com.muriane.visual_share.function.screenshot;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.logging.LogUtils;
+import com.muriane.visual_share.Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -87,7 +88,12 @@ public class ScreenshotImageWidget extends CustomImageWidget{
             this.endPointInImage = null;
             this.startPointInImage = mousePointInImage(event);
         }
-//            this.screen.fadeOtherWidgets();
+
+        if (Config.CLIENT.SCREENSHOT_AUTO_CLOSE_SIDEBAR.get()) {
+            if (Minecraft.getInstance().screen != null && Minecraft.getInstance().screen == Screenshot.screenshotScreen) {
+                Screenshot.screenshotScreen.fadeOtherWidgets();
+            }
+        }
     }
 
     @Override
