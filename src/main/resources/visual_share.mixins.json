@@ -2,7 +2,8 @@
   "required": true,
   "package": "com.muriane.visual_share.mixin",
   "compatibilityLevel": "JAVA_25",
-  "mixins": [],
+  "mixins": [
+  ],
   "injectors": {
     "defaultRequire": 1
   },

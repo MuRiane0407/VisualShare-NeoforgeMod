@@ -307,8 +307,9 @@ public class ScreenshotScreen extends Screen {
         if (this.colorPalettePanel.active || this.brushSizePanel.active){
             this.fadeOtherWidgets();
             Minecraft.getInstance().setScreen(this);
-        }else {
+        }else{
             Minecraft.getInstance().setScreen(lastScreen);
+            Screenshot.screenshotScreen = null;
         }
     }
 

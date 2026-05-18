@@ -78,6 +78,8 @@
   "visual_share.configuration.screenshot.share.thumbnail_image_size.tooltip": "缩略图占屏幕大小的百分比, 不按SHIFT查看图片时使用",
   "visual_share.configuration.screenshot.share.full_image_size": "完整图大小",
   "visual_share.configuration.screenshot.share.full_image_size.tooltip": "完整图占屏幕大小的百分比, 按SHIFT查看图片时使用",
+  "visual_share.configuration.screenshot.rerender_frequency": "重渲染频率",
+  "visual_share.configuration.screenshot.rerender_frequency.tooltip": "当编辑图片时，一秒重渲染多少次图片",
   "visual_share.configuration.screenshot.auto_close_sidebar": "自动关闭侧边栏",
   "visual_share.configuration.screenshot.auto_close_sidebar.tooltip": "当你编辑图片时，自动关闭侧边功能栏",
   "visual_share.configuration.screenshot.share.max_size": "最大尺寸",

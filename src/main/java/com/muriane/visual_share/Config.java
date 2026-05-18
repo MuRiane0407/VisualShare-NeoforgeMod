@@ -85,6 +85,7 @@ public class Config {
         public final ModConfigSpec.EnumValue<InterpolationAlgorithm> SCREENSHOT_SHARE_INTERPOLATION_ALGORITHM;
         public final ModConfigSpec.DoubleValue SCREENSHOT_SHARE_THUMBNAIL_IMAGE_SIZE;
         public final ModConfigSpec.DoubleValue SCREENSHOT_SHARE_FULL_IMAGE_SIZE;
+        public final ModConfigSpec.IntValue SCREENSHOT_RERENDER_FREQUENCY;
         public final ModConfigSpec.BooleanValue SCREENSHOT_AUTO_CLOSE_SIDEBAR;
 
         Client(ModConfigSpec.Builder builder){
@@ -118,6 +119,9 @@ public class Config {
                     .defineInRange("full_image_size", 0.75, 0, 1);
             builder.pop();
 
+            SCREENSHOT_RERENDER_FREQUENCY = builder
+                    .translation("visual_share.configuration.screenshot.rerender_frequency")
+                    .defineInRange("rerender_frequency", 10, 1, 120);
             SCREENSHOT_AUTO_CLOSE_SIDEBAR = builder
                     .translation("visual_share.configuration.screenshot.auto_close_sidebar")
                     .define("auto_close_sidebar", false);

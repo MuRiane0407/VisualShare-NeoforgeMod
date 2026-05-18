@@ -10,13 +10,12 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RenderFrameEvent;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector2i;
 import org.slf4j.Logger;
 
 import java.awt.*;
-import java.util.concurrent.CompletableFuture;
 
 public class ScreenshotImageWidget extends CustomImageWidget{
     private final Logger LOGGER = LogUtils.getLogger();
@@ -149,6 +148,7 @@ public class ScreenshotImageWidget extends CustomImageWidget{
     }
 
     public void reloadImage(){
+        // 存在难以解决的内存泄露问题，等待后续解决
         this.imageTexture = new DynamicTexture(this.image::toString, this.image);
     }
 
@@ -245,14 +245,20 @@ public class ScreenshotImageWidget extends CustomImageWidget{
 
     @EventBusSubscriber
     public static class imageHolder{
+        public static float tick = 0;
+
         @SubscribeEvent
-        public static void onTick(ClientTickEvent.Pre event){
+        public static void onRenderFrame(RenderFrameEvent.Pre event){
             if (Minecraft.getInstance().screen != null && Minecraft.getInstance().screen == Screenshot.screenshotScreen){
                 ScreenshotImageWidget imageWidget = Screenshot.screenshotScreen.getImageWidget();
                 if (imageWidget != null){
                     if (imageWidget.needRerender()) {
-                        imageWidget.reloadImage();
-                        imageWidget.setNeedRerender(false);
+                        tick += event.getPartialTick().getGameTimeDeltaTicks();
+                        if (tick >= 20f/Config.CLIENT.SCREENSHOT_RERENDER_FREQUENCY.get()) {
+                            imageWidget.reloadImage();
+                            imageWidget.setNeedRerender(false);
+                            tick -= 20f/Config.CLIENT.SCREENSHOT_RERENDER_FREQUENCY.get();
+                        }
                     }
                 }
             }

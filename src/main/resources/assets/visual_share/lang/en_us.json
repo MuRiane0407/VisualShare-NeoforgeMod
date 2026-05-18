@@ -78,6 +78,8 @@
   "visual_share.configuration.screenshot.share.thumbnail_image_size.tooltip": "The percent of screen size of thumbnail image, when you looking at image without pressing SHIFT",
   "visual_share.configuration.screenshot.share.full_image_size": "Full Image Size",
   "visual_share.configuration.screenshot.share.full_image_size.tooltip": "The percent of screen size of full image, when you looking at image with pressing SHIFT",
+  "visual_share.configuration.screenshot.rerender_frequency": "Rerender Frequency",
+  "visual_share.configuration.screenshot.rerender_frequency.tooltip": "When editing an image, how many times the image is rerendered per second",
   "visual_share.configuration.screenshot.auto_close_sidebar": "Auto Close Sidebar",
   "visual_share.configuration.screenshot.auto_close_sidebar.tooltip": "When you editing the image, automatically close the sidebar",
   "visual_share.configuration.screenshot.share.max_size": "Max Size",
