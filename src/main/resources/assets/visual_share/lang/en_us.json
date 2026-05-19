@@ -23,6 +23,9 @@
   "key.visual_share.screenshot.save": "Save",
   "key.visual_share.screenshot.share": "Share",
 
+  "key.category.visual_share.drawing_board": "Visual Share | Drawing Board",
+  "key.visual_share.drawing_board.drawing_board": "Drawing Board",
+
   "button.visual_share.screenshot.shortcuts": "Shortcuts: [%s]",
   "button.visual_share.screenshot.selection.name": "Selection",
   "button.visual_share.screenshot.selection.info": "Switch to selection mode",
@@ -89,5 +92,16 @@
   "visual_share.configuration.screenshot.share.image_prefix": "Image Prefix",
   "visual_share.configuration.screenshot.share.image_prefix.tooltip": "Prefix marker for identifying image",
   "visual_share.configuration.screenshot.share.image_subfix": "Image Subfix",
-  "visual_share.configuration.screenshot.share.image_subfix.tooltip": "Subfix marker for identifying image"
+  "visual_share.configuration.screenshot.share.image_subfix.tooltip": "Subfix marker for identifying image",
+
+  "visual_share.configuration.drawing_board": "Drawing Board Settings",
+  "visual_share.configuration.drawing_board.button": "Drawing Board Settings",
+  "visual_share.configuration.drawing_board.tooltip": "Drawing Board Settings",
+
+  "visual_share.configuration.drawing_board.width": "Width",
+  "visual_share.configuration.drawing_board.width.tooltip": "The width of drawing board",
+  "visual_share.configuration.drawing_board.height": "Height",
+  "visual_share.configuration.drawing_board.height.tooltip": "The height of drawing board",
+  "visual_share.configuration.drawing_board.background_color": "Background Color",
+  "visual_share.configuration.drawing_board.background_color.tooltip": "The background color of drawing board, is the integer form of the RGB value"
 }

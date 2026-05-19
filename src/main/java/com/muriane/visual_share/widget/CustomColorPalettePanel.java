@@ -1,4 +1,4 @@
-package com.muriane.visual_share.function.screenshot;
+package com.muriane.visual_share.widget;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.muriane.visual_share.VisualShare;

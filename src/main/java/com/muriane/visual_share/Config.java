@@ -1,5 +1,6 @@
 package com.muriane.visual_share;
 
+import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -88,6 +89,10 @@ public class Config {
         public final ModConfigSpec.IntValue SCREENSHOT_RERENDER_FREQUENCY;
         public final ModConfigSpec.BooleanValue SCREENSHOT_AUTO_CLOSE_SIDEBAR;
 
+        public final ModConfigSpec.IntValue DRAWING_BOARD_WIDTH;
+        public final ModConfigSpec.IntValue DRAWING_BOARD_HEIGHT;
+        public final ModConfigSpec.IntValue DRAWING_BOARD_BACKGROUND_COLOR;
+
         Client(ModConfigSpec.Builder builder){
             builder.push("screenshot");
 
@@ -121,10 +126,23 @@ public class Config {
 
             SCREENSHOT_RERENDER_FREQUENCY = builder
                     .translation("visual_share.configuration.screenshot.rerender_frequency")
-                    .defineInRange("rerender_frequency", 10, 1, 120);
+                    .defineInRange("rerender_frequency", 15, 1, 120);
             SCREENSHOT_AUTO_CLOSE_SIDEBAR = builder
                     .translation("visual_share.configuration.screenshot.auto_close_sidebar")
                     .define("auto_close_sidebar", false);
+
+            builder.pop();
+            builder.push("drawing_board");
+
+            DRAWING_BOARD_WIDTH = builder
+                    .translation("visual_share.configuration.drawing_board.width")
+                    .defineInRange("width", 256, 32, 2048);
+            DRAWING_BOARD_HEIGHT = builder
+                    .translation("visual_share.configuration.drawing_board.height")
+                    .defineInRange("height", 256, 32, 2048);
+            DRAWING_BOARD_BACKGROUND_COLOR = builder
+                    .translation("visual_share.configuration.drawing_board.background_color")
+                    .defineInRange("background_color", 16777215, 0, 16777215);
 
             builder.pop();
         }

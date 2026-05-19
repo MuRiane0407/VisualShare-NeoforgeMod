@@ -12,8 +12,8 @@
   "tip.visual_share.screenshot.image.no_image": "图片不存在",
   "tip.visual_share.screenshot.image.image_loading": "图片加载中",
 
-  "key.category.visual_share.screenshot": "视觉分享 | 快速截图",
-  "key.visual_share.screenshot.screenshot": "快速截图",
+  "key.category.visual_share.screenshot": "视觉分享 | 截图",
+  "key.visual_share.screenshot.screenshot": "截图",
   "key.visual_share.screenshot.selection": "选区",
   "key.visual_share.screenshot.brush": "笔刷",
   "key.visual_share.screenshot.cut": "选区 | 剪切",
@@ -22,6 +22,9 @@
   "key.visual_share.screenshot.undo_redo": "撤销或重做",
   "key.visual_share.screenshot.save": "保存",
   "key.visual_share.screenshot.share": "分享",
+
+  "key.category.visual_share.drawing_board": "视觉分享 | 画板",
+  "key.visual_share.drawing_board.drawing_board": "画板",
 
   "button.visual_share.screenshot.shortcuts": "快捷键: [%s]",
   "button.visual_share.screenshot.selection.name": "选区",
@@ -89,5 +92,16 @@
   "visual_share.configuration.screenshot.share.image_prefix": "图片前缀",
   "visual_share.configuration.screenshot.share.image_prefix.tooltip": "用于标识图片的前缀标记",
   "visual_share.configuration.screenshot.share.image_subfix": "图片后缀",
-  "visual_share.configuration.screenshot.share.image_subfix.tooltip": "用于标识图片的后缀标记"
+  "visual_share.configuration.screenshot.share.image_subfix.tooltip": "用于标识图片的后缀标记",
+
+  "visual_share.configuration.drawing_board": "画板设置",
+  "visual_share.configuration.drawing_board.button": "画板设置",
+  "visual_share.configuration.drawing_board.tooltip": "画板设置",
+
+  "visual_share.configuration.drawing_board.width": "宽度",
+  "visual_share.configuration.drawing_board.width.tooltip": "画板宽度",
+  "visual_share.configuration.drawing_board.height": "高度",
+  "visual_share.configuration.drawing_board.height.tooltip": "画板高度",
+  "visual_share.configuration.drawing_board.background_color": "背景颜色",
+  "visual_share.configuration.drawing_board.background_color.tooltip": "画板背景颜色, 为rgb值的整数形式"
 }

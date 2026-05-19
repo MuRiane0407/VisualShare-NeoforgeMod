@@ -1,4 +1,4 @@
-package com.muriane.visual_share.function.screenshot;
+package com.muriane.visual_share.func.screenshot;
 
 import com.github.avifimageio.AvifWriteParam;
 import com.mojang.blaze3d.platform.ClipboardManager;
@@ -9,6 +9,10 @@ import com.mojang.logging.LogUtils;
 import com.muriane.visual_share.Config;
 import com.muriane.visual_share.VisualShare;
 import com.muriane.visual_share.key.ModKeys;
+import com.muriane.visual_share.widget.CustomColorPalettePanel;
+import com.muriane.visual_share.widget.CustomImageButton;
+import com.muriane.visual_share.widget.CustomLabelWidget;
+import com.muriane.visual_share.widget.CustomNumberPanel;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -49,7 +53,7 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public class ScreenshotScreen extends Screen {
+public class ImageViewScreen extends Screen {
     private static final WidgetSprites notFindSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "screenshot/not_find"));
     private static final WidgetSprites selectionSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "screenshot/selection"), Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "screenshot/selection_highlight"));
     private static final WidgetSprites brushSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "screenshot/brush"), Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "screenshot/brush_highlight"));
@@ -66,20 +70,20 @@ public class ScreenshotScreen extends Screen {
     private final List<NativeImage> imageHistory = new ArrayList<>();
     private int step;
     private Component tip;
-    private ScreenshotImageWidget.InteractionMode imageInteractionMode;
+    private ImageViewWidget.InteractionMode imageInteractionMode;
     private float[] imageHSV;
     private float imageBrushSize;
-    private ScreenshotImageWidget imageWidget;
+    private ImageViewWidget imageViewWidget;
     private final CustomNumberPanel brushSizePanel;
     private final CustomColorPalettePanel colorPalettePanel;
 
-    protected ScreenshotScreen(Screen lastScreen, NativeImage image) {
+    public ImageViewScreen(Screen lastScreen, NativeImage image) {
         super(Component.empty());
         this.lastScreen = lastScreen;
         this.imageHistory.add(image);
         this.step = imageHistory.size()-1;
         this.tip = Component.empty();
-        this.imageInteractionMode = ScreenshotImageWidget.InteractionMode.SELECTION;
+        this.imageInteractionMode = ImageViewWidget.InteractionMode.SELECTION;
         this.imageHSV = new float[]{1, 1, 1};
         this.imageBrushSize = 2;
         this.colorPalettePanel = new CustomColorPalettePanel(
@@ -136,20 +140,20 @@ public class ScreenshotScreen extends Screen {
                                         List.of(
                                                 Component.translatable("button.visual_share.screenshot.selection.name").withStyle(ChatFormatting.BOLD),
                                                 Component.translatable("button.visual_share.screenshot.selection.info").withStyle(ChatFormatting.GRAY),
-                                                Component.translatable("button.visual_share.screenshot.shortcuts", Component.literal(ModKeys.SELECTION.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
+                                                Component.translatable("button.visual_share.screenshot.shortcuts", Component.literal(ModKeys.SCREENSHOT_SELECTION.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
                                         )
                                 ),
-                                button -> this.setImageInterActionMode(ScreenshotImageWidget.InteractionMode.SELECTION)
+                                button -> this.setImageInterActionMode(ImageViewWidget.InteractionMode.SELECTION)
                         ),
                         new Pair<>(
                                 new Pair<>(brushSprites,
                                         List.of(
                                                 Component.translatable("button.visual_share.screenshot.brush.name").withStyle(ChatFormatting.BOLD),
                                                 Component.translatable("button.visual_share.screenshot.brush.info").withStyle(ChatFormatting.GRAY),
-                                                Component.translatable("button.visual_share.screenshot.shortcuts", Component.literal(ModKeys.BRUSH.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
+                                                Component.translatable("button.visual_share.screenshot.shortcuts", Component.literal(ModKeys.SCREENSHOT_BRUSH.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
                                         )
                                 ),
-                                button -> this.setImageInterActionMode(ScreenshotImageWidget.InteractionMode.BRUSH)
+                                button -> this.setImageInterActionMode(ImageViewWidget.InteractionMode.BRUSH)
                         ))
         );
         int leftModeButtonListHeight = 32*leftModeList.size()*guiScale;
@@ -160,27 +164,27 @@ public class ScreenshotScreen extends Screen {
         );
 
         List<Pair<Pair<WidgetSprites, List<Component>>, Button.OnPress>> leftFunctionList = new ArrayList<>();
-        if (this.imageInteractionMode == ScreenshotImageWidget.InteractionMode.SELECTION){
+        if (this.imageInteractionMode == ImageViewWidget.InteractionMode.SELECTION){
             leftFunctionList.add(
                     new Pair<>(
                             new Pair<>(cutSprites,
                                     List.of(
                                             Component.translatable("button.visual_share.screenshot.cut.name").withStyle(ChatFormatting.BOLD),
                                             Component.translatable("button.visual_share.screenshot.cut.info").withStyle(ChatFormatting.GRAY),
-                                            Component.translatable("button.visual_share.screenshot.shortcuts", Component.literal(ModKeys.CUT.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
+                                            Component.translatable("button.visual_share.screenshot.shortcuts", Component.literal(ModKeys.SCREENSHOT_CUT.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
                                     )
                             ),
                             button -> this.imageCut()
                     )
             );
-        }else if (this.imageInteractionMode == ScreenshotImageWidget.InteractionMode.BRUSH){
+        }else if (this.imageInteractionMode == ImageViewWidget.InteractionMode.BRUSH){
             leftFunctionList.addAll(List.of(
                     new Pair<>(
                             new Pair<>(colorPaletteSprites,
                                     List.of(
                                             Component.translatable("button.visual_share.screenshot.color_palette.name").withStyle(ChatFormatting.BOLD),
                                             Component.translatable("button.visual_share.screenshot.color_palette.info").withStyle(ChatFormatting.GRAY),
-                                            Component.translatable("button.visual_share.screenshot.shortcuts", Component.literal(ModKeys.COLOR_PALETTE.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
+                                            Component.translatable("button.visual_share.screenshot.shortcuts", Component.literal(ModKeys.SCREENSHOT_COLOR_PALETTE.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
                                     )
                             ),
                             button -> this.imageColorPalette()
@@ -190,7 +194,7 @@ public class ScreenshotScreen extends Screen {
                                     List.of(
                                             Component.translatable("button.visual_share.screenshot.brush_size.name").withStyle(ChatFormatting.BOLD),
                                             Component.translatable("button.visual_share.screenshot.brush_size.info").withStyle(ChatFormatting.GRAY),
-                                            Component.translatable("button.visual_share.screenshot.shortcuts", Component.literal(ModKeys.BRUSH_SIZE.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
+                                            Component.translatable("button.visual_share.screenshot.shortcuts", Component.literal(ModKeys.SCREENSHOT_BRUSH_SIZE.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
                                     )
                             ),
                             button -> this.imageBrushSize()
@@ -213,7 +217,7 @@ public class ScreenshotScreen extends Screen {
                                         List.of(
                                                 Component.translatable("button.visual_share.screenshot.save.name").withStyle(ChatFormatting.BOLD),
                                                 Component.translatable("button.visual_share.screenshot.save.info").withStyle(ChatFormatting.GRAY),
-                                                Component.translatable("button.visual_share.screenshot.shortcuts", Component.literal("Ctrl"+"+"+ModKeys.SAVE.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
+                                                Component.translatable("button.visual_share.screenshot.shortcuts", Component.literal("Ctrl"+"+"+ModKeys.SCREENSHOT_SAVE.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
                                         )
                                 ),
                                 button -> this.imageSave()
@@ -223,7 +227,7 @@ public class ScreenshotScreen extends Screen {
                                         List.of(
                                                 Component.translatable("button.visual_share.screenshot.share.name").withStyle(ChatFormatting.BOLD),
                                                 Component.translatable("button.visual_share.screenshot.share.info").withStyle(ChatFormatting.GRAY),
-                                                Component.translatable("button.visual_share.screenshot.shortcuts", Component.literal("Ctrl"+"+"+ModKeys.SHARE.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
+                                                Component.translatable("button.visual_share.screenshot.shortcuts", Component.literal("Ctrl"+"+"+ModKeys.SCREENSHOT_SHARE.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
                                         )
                                 ),
                                 button -> this.imageShare()
@@ -233,7 +237,7 @@ public class ScreenshotScreen extends Screen {
                                         List.of(
                                                 Component.translatable("button.visual_share.screenshot.undo.name").withStyle(ChatFormatting.BOLD),
                                                 Component.translatable("button.visual_share.screenshot.undo.info").withStyle(ChatFormatting.GRAY),
-                                                Component.translatable("button.visual_share.screenshot.shortcuts", Component.literal("Ctrl"+"+"+ModKeys.UNDO_REDO.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
+                                                Component.translatable("button.visual_share.screenshot.shortcuts", Component.literal("Ctrl"+"+"+ModKeys.SCREENSHOT_UNDO_REDO.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
                                         )
                                 ),
                                 button -> this.imageUndo()
@@ -243,7 +247,7 @@ public class ScreenshotScreen extends Screen {
                                         List.of(
                                                 Component.translatable("button.visual_share.screenshot.redo.name").withStyle(ChatFormatting.BOLD),
                                                 Component.translatable("button.visual_share.screenshot.redo.info").withStyle(ChatFormatting.GRAY),
-                                                Component.translatable("button.visual_share.screenshot.shortcuts", Component.literal("Ctrl"+"+"+"Shift"+"+"+ModKeys.UNDO_REDO.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
+                                                Component.translatable("button.visual_share.screenshot.shortcuts", Component.literal("Ctrl"+"+"+"Shift"+"+"+ModKeys.SCREENSHOT_UNDO_REDO.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
                                         )
                                 ),
                                 button -> this.imageRedo()
@@ -267,13 +271,13 @@ public class ScreenshotScreen extends Screen {
         float xOffset = widthScale > heightScale ? (1-heightScale/widthScale)/2 : 0;
         float yOffset = widthScale < heightScale ? (1-widthScale/heightScale)/2 : 0;
         if (!image.isClosed()){
-            this.imageWidget = new ScreenshotImageWidget(
+            this.imageViewWidget = new ImageViewWidget(
                     image,
                     0.125f + xOffset * scale, 0.125f + yOffset * scale, scale * useScale, scale * useScale,
                     guiScale, window, this.imageInteractionMode,
                     this.imageHSV, this.imageBrushSize,
                     this::addNewImage);
-            return List.of(imageWidget);
+            return List.of(imageViewWidget);
         }else{
             LOGGER.error("The image has been closed, please submit an issue");
         }
@@ -309,22 +313,22 @@ public class ScreenshotScreen extends Screen {
             Minecraft.getInstance().setScreen(this);
         }else{
             Minecraft.getInstance().setScreen(lastScreen);
-            Screenshot.screenshotScreen = null;
+            Screenshot.imageViewScreen = null;
         }
     }
 
-    public ScreenshotImageWidget.InteractionMode getImageInterActionMode() {
+    public ImageViewWidget.InteractionMode getImageInterActionMode() {
         return this.imageInteractionMode;
     }
 
-    public void setImageInterActionMode(ScreenshotImageWidget.InteractionMode mode) {
+    public void setImageInterActionMode(ImageViewWidget.InteractionMode mode) {
         this.imageInteractionMode = mode;
         this.fadeOtherWidgets();
         this.reload();
     }
 
     public void imageCut(){
-        NativeImage newImage = this.imageWidget.cutImageWithSelection();
+        NativeImage newImage = this.imageViewWidget.cutImageWithSelection();
         if (newImage != null){
             this.addNewImage(newImage);
         }else{
@@ -486,8 +490,8 @@ public class ScreenshotScreen extends Screen {
         this.tip = tip;
     }
 
-    public ScreenshotImageWidget getImageWidget(){
-        return this.imageWidget;
+    public ImageViewWidget getImageViewWidget(){
+        return this.imageViewWidget;
     }
 
     public void addNewImage(NativeImage newImage){
@@ -564,7 +568,7 @@ public class ScreenshotScreen extends Screen {
                 public static void handleDataOnMain(final ImageUploadRequestData data, final IPayloadContext context) {
                     String prefix = Config.SERVER.SCREENSHOT_SHARE_IMAGE_PREFIX.get();
                     String subfix = Config.SERVER.SCREENSHOT_SHARE_IMAGE_SUBFIX.get();
-                    ScreenshotScreen screen = Screenshot.screenshotScreen;
+                    ImageViewScreen screen = Screenshot.imageViewScreen;
 
                     Pair<byte[], String> imageData = imageList.getOrDefault(data.id, null);
                     imageList.remove(data.id);

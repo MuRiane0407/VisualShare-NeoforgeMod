@@ -1,9 +1,10 @@
-package com.muriane.visual_share.function.screenshot;
+package com.muriane.visual_share.func.screenshot;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.logging.LogUtils;
 import com.muriane.visual_share.Config;
+import com.muriane.visual_share.widget.CustomImageWidget;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -17,7 +18,7 @@ import org.slf4j.Logger;
 
 import java.awt.*;
 
-public class ScreenshotImageWidget extends CustomImageWidget{
+public class ImageViewWidget extends CustomImageWidget {
     private final Logger LOGGER = LogUtils.getLogger();
     protected ImageCallback callback;
     protected InteractionMode mode;
@@ -29,7 +30,7 @@ public class ScreenshotImageWidget extends CustomImageWidget{
     protected Vector2i brushLastPoint = null;
     protected boolean needRerender;
 
-    public ScreenshotImageWidget(NativeImage image, float xPercent, float yPercent, float widthPercent, float heightPercent, int guiScale, @NotNull Window window, InteractionMode mode, float[] hsv, float brushSize, ImageCallback callback) {
+    public ImageViewWidget(NativeImage image, float xPercent, float yPercent, float widthPercent, float heightPercent, int guiScale, @NotNull Window window, InteractionMode mode, float[] hsv, float brushSize, ImageCallback callback) {
         super((int) (window.getWidth()*xPercent)/guiScale, (int) (window.getHeight()*yPercent)/guiScale, (int) ((float) image.getWidth()*widthPercent/guiScale), (int) ((float) image.getHeight()*heightPercent/guiScale), image);
         this.callback = callback;
         this.mode = mode;
@@ -89,8 +90,8 @@ public class ScreenshotImageWidget extends CustomImageWidget{
         }
 
         if (Config.CLIENT.SCREENSHOT_AUTO_CLOSE_SIDEBAR.get()) {
-            if (Minecraft.getInstance().screen != null && Minecraft.getInstance().screen == Screenshot.screenshotScreen) {
-                Screenshot.screenshotScreen.fadeOtherWidgets();
+            if (Minecraft.getInstance().screen != null && Minecraft.getInstance().screen == Screenshot.imageViewScreen) {
+                Screenshot.imageViewScreen.fadeOtherWidgets();
             }
         }
     }
@@ -249,8 +250,8 @@ public class ScreenshotImageWidget extends CustomImageWidget{
 
         @SubscribeEvent
         public static void onRenderFrame(RenderFrameEvent.Pre event){
-            if (Minecraft.getInstance().screen != null && Minecraft.getInstance().screen == Screenshot.screenshotScreen){
-                ScreenshotImageWidget imageWidget = Screenshot.screenshotScreen.getImageWidget();
+            if (Minecraft.getInstance().screen != null && Minecraft.getInstance().screen == Screenshot.imageViewScreen){
+                ImageViewWidget imageWidget = Screenshot.imageViewScreen.getImageViewWidget();
                 if (imageWidget != null){
                     if (imageWidget.needRerender()) {
                         tick += event.getPartialTick().getGameTimeDeltaTicks();

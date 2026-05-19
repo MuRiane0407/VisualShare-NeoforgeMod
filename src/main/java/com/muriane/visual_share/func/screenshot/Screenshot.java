@@ -1,4 +1,4 @@
-package com.muriane.visual_share.function.screenshot;
+package com.muriane.visual_share.func.screenshot;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.NativeImage;
@@ -55,7 +55,7 @@ import java.util.Map;
 
 public class Screenshot {
     public static Logger LOGGER = LogUtils.getLogger();
-    public static ScreenshotScreen screenshotScreen;
+    public static ImageViewScreen imageViewScreen;
     public static Map<String, Pair<Boolean, Vector2i>> ScreenshotData = new HashMap<>(); // 图片ID, 是否存在, 尺寸
     public static double maxThumbnailSizePercent = Config.CLIENT.SCREENSHOT_SHARE_THUMBNAIL_IMAGE_SIZE.getAsDouble();
     public static double maxFullSizePercent = Config.CLIENT.SCREENSHOT_SHARE_FULL_IMAGE_SIZE.getAsDouble();
@@ -68,52 +68,52 @@ public class Screenshot {
         @SubscribeEvent
         public static void onKey(InputEvent.Key event){
             Minecraft mc = Minecraft.getInstance();
-            if (event.getKey() == ModKeys.screenshot.getKey().getValue() && event.getAction() == InputConstants.PRESS){
-                if (mc.level != null && !(mc.screen instanceof ScreenshotScreen)){ // 用level来判断玩家是否已经在某个服务器中
+            if (event.getKey() == ModKeys.SCREENSHOT_SCREENSHOT.getKey().getValue() && event.getAction() == InputConstants.PRESS){
+                if (mc.level != null && !(mc.screen instanceof ImageViewScreen)){ // 用level来判断玩家是否已经在某个服务器中
                     com.muriane.visual_share.method.MScreenshot.takeScreenshot(
                             mc.getMainRenderTarget(),
                             1,
                             image -> {
-                                screenshotScreen = new ScreenshotScreen(mc.screen, image);
-                                mc.setScreen(screenshotScreen);
+                                imageViewScreen = new ImageViewScreen(mc.screen, image);
+                                mc.setScreen(imageViewScreen);
                             }
                     );
                 }
-            }else if (screenshotScreen != null && mc.screen == screenshotScreen) { // 只有在截图界面中才能操作
+            }else if (imageViewScreen != null && mc.screen == imageViewScreen) { // 只有在截图界面中才能操作
                 if (event.getAction() == InputConstants.PRESS) {
-                    if (event.getKey() == ModKeys.SELECTION.getKey().getValue()){
-                        screenshotScreen.setImageInterActionMode(ScreenshotImageWidget.InteractionMode.SELECTION);
-                    }else if (event.getKey() == ModKeys.BRUSH.getKey().getValue()){
-                        screenshotScreen.setImageInterActionMode(ScreenshotImageWidget.InteractionMode.BRUSH);
-                    }else if (event.getKey() == ModKeys.UNDO_REDO.getKey().getValue()){
+                    if (event.getKey() == ModKeys.SCREENSHOT_SELECTION.getKey().getValue()){
+                        imageViewScreen.setImageInterActionMode(ImageViewWidget.InteractionMode.SELECTION);
+                    }else if (event.getKey() == ModKeys.SCREENSHOT_BRUSH.getKey().getValue()){
+                        imageViewScreen.setImageInterActionMode(ImageViewWidget.InteractionMode.BRUSH);
+                    }else if (event.getKey() == ModKeys.SCREENSHOT_UNDO_REDO.getKey().getValue()){
                         if (mc.hasControlDown()){
                             if (!mc.hasShiftDown()){
-                                screenshotScreen.imageUndo();
+                                imageViewScreen.imageUndo();
                             }else{
-                                screenshotScreen.imageRedo();
+                                imageViewScreen.imageRedo();
                             }
                         }
-                    }else if (event.getKey() == ModKeys.SAVE.getKey().getValue()){
+                    }else if (event.getKey() == ModKeys.SCREENSHOT_SAVE.getKey().getValue()){
                         if (mc.hasControlDown()) {
-                            screenshotScreen.imageSave();
+                            imageViewScreen.imageSave();
                         }
-                    }else if (event.getKey() == ModKeys.SHARE.getKey().getValue()){
+                    }else if (event.getKey() == ModKeys.SCREENSHOT_SHARE.getKey().getValue()){
                         if (mc.hasControlDown()) {
-                            screenshotScreen.imageShare();
+                            imageViewScreen.imageShare();
                         }
                     }
 
-                    if (screenshotScreen.getImageInterActionMode() == ScreenshotImageWidget.InteractionMode.SELECTION) {
-                        if (event.getKey() == ModKeys.CUT.getKey().getValue()) {
-                            screenshotScreen.imageCut();
+                    if (imageViewScreen.getImageInterActionMode() == ImageViewWidget.InteractionMode.SELECTION) {
+                        if (event.getKey() == ModKeys.SCREENSHOT_CUT.getKey().getValue()) {
+                            imageViewScreen.imageCut();
                         }
                     }
 
-                    if (screenshotScreen.getImageInterActionMode() == ScreenshotImageWidget.InteractionMode.BRUSH) {
-                        if (event.getKey() == ModKeys.COLOR_PALETTE.getKey().getValue()) {
-                            screenshotScreen.imageColorPalette();
-                        } else if (event.getKey() == ModKeys.BRUSH_SIZE.getKey().getValue()) {
-                            screenshotScreen.imageBrushSize();
+                    if (imageViewScreen.getImageInterActionMode() == ImageViewWidget.InteractionMode.BRUSH) {
+                        if (event.getKey() == ModKeys.SCREENSHOT_COLOR_PALETTE.getKey().getValue()) {
+                            imageViewScreen.imageColorPalette();
+                        } else if (event.getKey() == ModKeys.SCREENSHOT_BRUSH_SIZE.getKey().getValue()) {
+                            imageViewScreen.imageBrushSize();
                         }
                     }
                 }
@@ -300,10 +300,7 @@ public class Screenshot {
             y = Math.max(outlineSize, Math.min(window.getHeight() / guiScale - height - outlineSize, event.getY() - height / 2));
 
             GuiGraphicsExtractor graphics = event.getGraphics();
-            graphics.fill(x-outlineSize, y-outlineSize, x+width+outlineSize, y, outlineColor);
-            graphics.fill(x-outlineSize, y, x, y+height, outlineColor);
-            graphics.fill(x+width, y, x+width+outlineSize, y+height, outlineColor);
-            graphics.fill(x-outlineSize, y+height, x+width+outlineSize, y+height+outlineSize, outlineColor);
+            graphics.fill(x-outlineSize, y-outlineSize, x+width+outlineSize, y+height+outlineSize, outlineColor);
             graphics.blit(RenderPipelines.GUI_TEXTURED, Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, curTextureId), x, y, 0, 0, width, height, width, height);
 
             event.setCanceled(true);
