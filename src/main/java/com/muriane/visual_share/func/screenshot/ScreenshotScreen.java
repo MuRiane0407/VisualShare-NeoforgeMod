@@ -1,7 +1,6 @@
 package com.muriane.visual_share.func.screenshot;
 
 import com.github.avifimageio.AvifWriteParam;
-import com.mojang.blaze3d.platform.ClipboardManager;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.mojang.blaze3d.platform.Window;
 import com.mojang.datafixers.util.Pair;
@@ -13,7 +12,6 @@ import com.muriane.visual_share.widget.CustomColorPalettePanel;
 import com.muriane.visual_share.widget.CustomImageButton;
 import com.muriane.visual_share.widget.CustomLabelWidget;
 import com.muriane.visual_share.widget.CustomNumberPanel;
-import io.netty.buffer.ByteBuf;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -23,21 +21,9 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Util;
-import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
-import net.neoforged.neoforge.client.network.event.RegisterClientPayloadHandlersEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import org.slf4j.Logger;
 
 import javax.imageio.IIOImage;
@@ -53,7 +39,7 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public class ImageViewScreen extends Screen {
+public class ScreenshotScreen extends Screen {
     private static final WidgetSprites notFindSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "screenshot/not_find"));
     private static final WidgetSprites selectionSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "screenshot/selection"), Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "screenshot/selection_highlight"));
     private static final WidgetSprites brushSprites = new WidgetSprites(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "screenshot/brush"), Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "screenshot/brush_highlight"));
@@ -70,20 +56,20 @@ public class ImageViewScreen extends Screen {
     private final List<NativeImage> imageHistory = new ArrayList<>();
     private int step;
     private Component tip;
-    private ImageViewWidget.InteractionMode imageInteractionMode;
+    private ScreenshotWidget.InteractionMode imageInteractionMode;
     private float[] imageHSV;
     private float imageBrushSize;
-    private ImageViewWidget imageViewWidget;
+    private ScreenshotWidget imageViewWidget;
     private final CustomNumberPanel brushSizePanel;
     private final CustomColorPalettePanel colorPalettePanel;
 
-    public ImageViewScreen(Screen lastScreen, NativeImage image) {
+    public ScreenshotScreen(Screen lastScreen, NativeImage image) {
         super(Component.empty());
         this.lastScreen = lastScreen;
         this.imageHistory.add(image);
         this.step = imageHistory.size()-1;
         this.tip = Component.empty();
-        this.imageInteractionMode = ImageViewWidget.InteractionMode.SELECTION;
+        this.imageInteractionMode = ScreenshotWidget.InteractionMode.SELECTION;
         this.imageHSV = new float[]{1, 1, 1};
         this.imageBrushSize = 2;
         this.colorPalettePanel = new CustomColorPalettePanel(
@@ -143,7 +129,7 @@ public class ImageViewScreen extends Screen {
                                                 Component.translatable("button.visual_share.screenshot.shortcuts", Component.literal(ModKeys.SCREENSHOT_SELECTION.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
                                         )
                                 ),
-                                button -> this.setImageInterActionMode(ImageViewWidget.InteractionMode.SELECTION)
+                                button -> this.setImageInterActionMode(ScreenshotWidget.InteractionMode.SELECTION)
                         ),
                         new Pair<>(
                                 new Pair<>(brushSprites,
@@ -153,7 +139,7 @@ public class ImageViewScreen extends Screen {
                                                 Component.translatable("button.visual_share.screenshot.shortcuts", Component.literal(ModKeys.SCREENSHOT_BRUSH.getKey().getDisplayName().getString()).withStyle(ChatFormatting.GRAY)).withStyle(ChatFormatting.DARK_GRAY)
                                         )
                                 ),
-                                button -> this.setImageInterActionMode(ImageViewWidget.InteractionMode.BRUSH)
+                                button -> this.setImageInterActionMode(ScreenshotWidget.InteractionMode.BRUSH)
                         ))
         );
         int leftModeButtonListHeight = 32*leftModeList.size()*guiScale;
@@ -164,7 +150,7 @@ public class ImageViewScreen extends Screen {
         );
 
         List<Pair<Pair<WidgetSprites, List<Component>>, Button.OnPress>> leftFunctionList = new ArrayList<>();
-        if (this.imageInteractionMode == ImageViewWidget.InteractionMode.SELECTION){
+        if (this.imageInteractionMode == ScreenshotWidget.InteractionMode.SELECTION){
             leftFunctionList.add(
                     new Pair<>(
                             new Pair<>(cutSprites,
@@ -177,7 +163,7 @@ public class ImageViewScreen extends Screen {
                             button -> this.imageCut()
                     )
             );
-        }else if (this.imageInteractionMode == ImageViewWidget.InteractionMode.BRUSH){
+        }else if (this.imageInteractionMode == ScreenshotWidget.InteractionMode.BRUSH){
             leftFunctionList.addAll(List.of(
                     new Pair<>(
                             new Pair<>(colorPaletteSprites,
@@ -271,7 +257,7 @@ public class ImageViewScreen extends Screen {
         float xOffset = widthScale > heightScale ? (1-heightScale/widthScale)/2 : 0;
         float yOffset = widthScale < heightScale ? (1-widthScale/heightScale)/2 : 0;
         if (!image.isClosed()){
-            this.imageViewWidget = new ImageViewWidget(
+            this.imageViewWidget = new ScreenshotWidget(
                     image,
                     0.125f + xOffset * scale, 0.125f + yOffset * scale, scale * useScale, scale * useScale,
                     guiScale, window, this.imageInteractionMode,
@@ -317,11 +303,11 @@ public class ImageViewScreen extends Screen {
         }
     }
 
-    public ImageViewWidget.InteractionMode getImageInterActionMode() {
+    public ScreenshotWidget.InteractionMode getImageInterActionMode() {
         return this.imageInteractionMode;
     }
 
-    public void setImageInterActionMode(ImageViewWidget.InteractionMode mode) {
+    public void setImageInterActionMode(ScreenshotWidget.InteractionMode mode) {
         this.imageInteractionMode = mode;
         this.fadeOtherWidgets();
         this.reload();
@@ -480,8 +466,8 @@ public class ImageViewScreen extends Screen {
             return outputStream;
         }).thenAccept(
                 outputStream -> {
-                    ClientPacketDistributor.sendToServer(new ImageUploadRequestData(textureId, 0));
-                    ImageUploadRequestData.imageList.put(textureId, new Pair<>(outputStream.toByteArray(), type.getType()));
+                    ClientPacketDistributor.sendToServer(new ScreenshotPayload.ImageUploadRequestData(textureId, 0));
+                    ScreenshotPayload.ImageUploadRequestData.imageList.put(textureId, new Pair<>(outputStream.toByteArray(), type.getType()));
                 }
         );
     }
@@ -490,7 +476,7 @@ public class ImageViewScreen extends Screen {
         this.tip = tip;
     }
 
-    public ImageViewWidget getImageViewWidget(){
+    public ScreenshotWidget getImageViewWidget(){
         return this.imageViewWidget;
     }
 
@@ -508,100 +494,5 @@ public class ImageViewScreen extends Screen {
         }
         this.step = this.imageHistory.size()-1;
         this.reload();
-    }
-
-    public record ImageUploadRequestData(String id, Integer cooldown) implements CustomPacketPayload {
-        public static Map<String, Pair<byte[], String>> imageList = new HashMap<>();
-        public static Map<UUID, Integer> imageShareCooldown = new HashMap<>();
-        public static final Logger LOGGER = LogUtils.getLogger();
-        public static final Type<ImageUploadRequestData> TYPE = new Type<>(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "image_upload"));
-
-        public static final StreamCodec<ByteBuf, ImageUploadRequestData> STREAM_CODEC = StreamCodec.composite(
-                ByteBufCodecs.STRING_UTF8,
-                ImageUploadRequestData::id,
-                ByteBufCodecs.INT,
-                ImageUploadRequestData::cooldown,
-                ImageUploadRequestData::new
-        );
-
-        @Override
-        public Type<? extends CustomPacketPayload> type() {
-            return TYPE;
-        }
-
-        @EventBusSubscriber
-        public static class DataHolder{
-            @SubscribeEvent
-            public static void register(RegisterPayloadHandlersEvent event){
-                final PayloadRegistrar registrar = event.registrar("1");
-                registrar.playBidirectional(
-                        ImageUploadRequestData.TYPE,
-                        ImageUploadRequestData.STREAM_CODEC,
-                        ImageUploadRequestData.DataHolder.ServerPayloadHandler::handleDataOnMain
-                );
-            }
-
-            @SubscribeEvent
-            public static void register(RegisterClientPayloadHandlersEvent event){
-                event.register(
-                        ImageUploadRequestData.TYPE,
-                        ImageUploadRequestData.DataHolder.ClientPayloadHandler::handleDataOnMain
-                );
-            }
-
-            public static class ServerPayloadHandler {
-                public static void handleDataOnMain(final ImageUploadRequestData data, final IPayloadContext context) {
-                    UUID playerId = context.player().getUUID();
-                    int cooldown = imageShareCooldown.getOrDefault(context.player().getUUID(), 0);
-                    if (cooldown <= 0){
-                        imageShareCooldown.put(playerId, Config.SERVER.SCREENSHOT_SHARE_COOLDOWN.getAsInt()*20);
-                        PacketDistributor.sendToPlayer((ServerPlayer) context.player(), new ImageUploadRequestData(data.id, cooldown));
-                        LOGGER.info("{} request upload image success", context.player().getDisplayName().getString());
-                    }else{
-                        PacketDistributor.sendToPlayer((ServerPlayer) context.player(), new ImageUploadRequestData(data.id, cooldown));
-                        LOGGER.info("{} request upload image fail: Cooldown", context.player().getDisplayName().getString());
-                    }
-                }
-            }
-
-            public static class ClientPayloadHandler {
-                public static void handleDataOnMain(final ImageUploadRequestData data, final IPayloadContext context) {
-                    String prefix = Config.SERVER.SCREENSHOT_SHARE_IMAGE_PREFIX.get();
-                    String subfix = Config.SERVER.SCREENSHOT_SHARE_IMAGE_SUBFIX.get();
-                    ImageViewScreen screen = Screenshot.imageViewScreen;
-
-                    Pair<byte[], String> imageData = imageList.getOrDefault(data.id, null);
-                    imageList.remove(data.id);
-
-                    if (data.cooldown <= 0){
-                        if (imageData != null){
-                            ClientPacketDistributor.sendToServer(new Screenshot.ImageData(imageData.getFirst(), data.id, imageData.getSecond()));
-
-                            ClipboardManager clipboard = new ClipboardManager();
-                            clipboard.setClipboard(screen.minecraft.getWindow(), prefix + data.id + subfix);
-                        }else{
-                            screen.setTip(Component.translatable("tip.visual_share.screenshot.fail_share.no_exist"));
-                        }
-
-                        screen.setTip(Component.translatable("tip.visual_share.screenshot.share"));
-                    }else{
-                        screen.setTip(Component.translatable("tip.visual_share.screenshot.fail_share.cooldown", Component.literal(String.format("%.1f", data.cooldown/20f))));
-                    }
-                    screen.reload();
-                }
-            }
-
-            @SubscribeEvent
-            public static void onTick(ClientTickEvent.Pre event){
-                for (UUID uuid : imageShareCooldown.keySet()){
-                    int cooldown = imageShareCooldown.get(uuid)-1;
-                    if (cooldown <= 0) {
-                        imageShareCooldown.remove(uuid);
-                    }else{
-                        imageShareCooldown.put(uuid, cooldown);
-                    }
-                }
-            }
-        }
     }
 }

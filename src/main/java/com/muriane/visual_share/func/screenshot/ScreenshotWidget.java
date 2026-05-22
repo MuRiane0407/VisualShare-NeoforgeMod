@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 
 import java.awt.*;
 
-public class ImageViewWidget extends CustomImageWidget {
+public class ScreenshotWidget extends CustomImageWidget {
     private final Logger LOGGER = LogUtils.getLogger();
     protected ImageCallback callback;
     protected InteractionMode mode;
@@ -30,7 +30,7 @@ public class ImageViewWidget extends CustomImageWidget {
     protected Vector2i brushLastPoint = null;
     protected boolean needRerender;
 
-    public ImageViewWidget(NativeImage image, float xPercent, float yPercent, float widthPercent, float heightPercent, int guiScale, @NotNull Window window, InteractionMode mode, float[] hsv, float brushSize, ImageCallback callback) {
+    public ScreenshotWidget(NativeImage image, float xPercent, float yPercent, float widthPercent, float heightPercent, int guiScale, @NotNull Window window, InteractionMode mode, float[] hsv, float brushSize, ImageCallback callback) {
         super((int) (window.getWidth()*xPercent)/guiScale, (int) (window.getHeight()*yPercent)/guiScale, (int) ((float) image.getWidth()*widthPercent/guiScale), (int) ((float) image.getHeight()*heightPercent/guiScale), image);
         this.callback = callback;
         this.mode = mode;
@@ -251,7 +251,7 @@ public class ImageViewWidget extends CustomImageWidget {
         @SubscribeEvent
         public static void onRenderFrame(RenderFrameEvent.Pre event){
             if (Minecraft.getInstance().screen != null && Minecraft.getInstance().screen == Screenshot.imageViewScreen){
-                ImageViewWidget imageWidget = Screenshot.imageViewScreen.getImageViewWidget();
+                ScreenshotWidget imageWidget = Screenshot.imageViewScreen.getImageViewWidget();
                 if (imageWidget != null){
                     if (imageWidget.needRerender()) {
                         tick += event.getPartialTick().getGameTimeDeltaTicks();

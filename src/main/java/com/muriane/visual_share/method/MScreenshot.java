@@ -48,7 +48,7 @@ public class MScreenshot {
             throw new IllegalStateException("Tried to capture screenshot of an incomplete framebuffer");
         } else if (width % downscaleFactor == 0 && height % downscaleFactor == 0) {
             GpuBuffer buffer = RenderSystem.getDevice()
-                    .createBuffer(() -> "Screenshot buffer", 9, (long)originWidth * originHeight * sourceTexture.getFormat().pixelSize());
+                    .createBuffer(() -> "MScreenshot buffer", 9, (long)originWidth * originHeight * sourceTexture.getFormat().pixelSize());
             CommandEncoder commandEncoder = RenderSystem.getDevice().createCommandEncoder();
             RenderSystem.getDevice()
                     .createCommandEncoder()

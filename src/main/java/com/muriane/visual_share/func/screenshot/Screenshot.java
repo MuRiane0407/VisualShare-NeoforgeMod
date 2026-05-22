@@ -9,7 +9,6 @@ import com.muriane.visual_share.Config;
 import com.muriane.visual_share.VisualShare;
 import com.muriane.visual_share.item.ModItems;
 import com.muriane.visual_share.key.ModKeys;
-import io.netty.buffer.ByteBuf;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -21,11 +20,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
@@ -35,13 +30,8 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.client.event.RenderTooltipEvent;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
-import net.neoforged.neoforge.client.network.event.RegisterClientPayloadHandlersEvent;
 import net.neoforged.neoforge.event.ServerChatEvent;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
-import net.neoforged.neoforge.network.handling.IPayloadContext;
-import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import org.joml.Vector2i;
 import org.slf4j.Logger;
 
@@ -55,7 +45,7 @@ import java.util.Map;
 
 public class Screenshot {
     public static Logger LOGGER = LogUtils.getLogger();
-    public static ImageViewScreen imageViewScreen;
+    public static ScreenshotScreen imageViewScreen;
     public static Map<String, Pair<Boolean, Vector2i>> ScreenshotData = new HashMap<>(); // 图片ID, 是否存在, 尺寸
     public static double maxThumbnailSizePercent = Config.CLIENT.SCREENSHOT_SHARE_THUMBNAIL_IMAGE_SIZE.getAsDouble();
     public static double maxFullSizePercent = Config.CLIENT.SCREENSHOT_SHARE_FULL_IMAGE_SIZE.getAsDouble();
@@ -69,12 +59,12 @@ public class Screenshot {
         public static void onKey(InputEvent.Key event){
             Minecraft mc = Minecraft.getInstance();
             if (event.getKey() == ModKeys.SCREENSHOT_SCREENSHOT.getKey().getValue() && event.getAction() == InputConstants.PRESS){
-                if (mc.level != null && !(mc.screen instanceof ImageViewScreen)){ // 用level来判断玩家是否已经在某个服务器中
+                if (mc.level != null && !(mc.screen instanceof ScreenshotScreen)){ // 用level来判断玩家是否已经在某个服务器中
                     com.muriane.visual_share.method.MScreenshot.takeScreenshot(
                             mc.getMainRenderTarget(),
                             1,
                             image -> {
-                                imageViewScreen = new ImageViewScreen(mc.screen, image);
+                                imageViewScreen = new ScreenshotScreen(mc.screen, image);
                                 mc.setScreen(imageViewScreen);
                             }
                     );
@@ -82,9 +72,9 @@ public class Screenshot {
             }else if (imageViewScreen != null && mc.screen == imageViewScreen) { // 只有在截图界面中才能操作
                 if (event.getAction() == InputConstants.PRESS) {
                     if (event.getKey() == ModKeys.SCREENSHOT_SELECTION.getKey().getValue()){
-                        imageViewScreen.setImageInterActionMode(ImageViewWidget.InteractionMode.SELECTION);
+                        imageViewScreen.setImageInterActionMode(ScreenshotWidget.InteractionMode.SELECTION);
                     }else if (event.getKey() == ModKeys.SCREENSHOT_BRUSH.getKey().getValue()){
-                        imageViewScreen.setImageInterActionMode(ImageViewWidget.InteractionMode.BRUSH);
+                        imageViewScreen.setImageInterActionMode(ScreenshotWidget.InteractionMode.BRUSH);
                     }else if (event.getKey() == ModKeys.SCREENSHOT_UNDO_REDO.getKey().getValue()){
                         if (mc.hasControlDown()){
                             if (!mc.hasShiftDown()){
@@ -103,13 +93,13 @@ public class Screenshot {
                         }
                     }
 
-                    if (imageViewScreen.getImageInterActionMode() == ImageViewWidget.InteractionMode.SELECTION) {
+                    if (imageViewScreen.getImageInterActionMode() == ScreenshotWidget.InteractionMode.SELECTION) {
                         if (event.getKey() == ModKeys.SCREENSHOT_CUT.getKey().getValue()) {
                             imageViewScreen.imageCut();
                         }
                     }
 
-                    if (imageViewScreen.getImageInterActionMode() == ImageViewWidget.InteractionMode.BRUSH) {
+                    if (imageViewScreen.getImageInterActionMode() == ScreenshotWidget.InteractionMode.BRUSH) {
                         if (event.getKey() == ModKeys.SCREENSHOT_COLOR_PALETTE.getKey().getValue()) {
                             imageViewScreen.imageColorPalette();
                         } else if (event.getKey() == ModKeys.SCREENSHOT_BRUSH_SIZE.getKey().getValue()) {
@@ -259,7 +249,7 @@ public class Screenshot {
                     LOGGER.error("Error read client file: {}", e.getMessage());
                 }
             }else{
-                ClientPacketDistributor.sendToServer(new ImageLoadRequestData(curTextureId));
+                ClientPacketDistributor.sendToServer(new ScreenshotPayload.ImageLoadRequestData(curTextureId));
             }
         }
 
@@ -367,174 +357,5 @@ public class Screenshot {
 //                }
 //            }
 //        }
-    }
-
-    public record ImageLoadRequestData(String id) implements CustomPacketPayload{
-        public static final Logger LOGGER = LogUtils.getLogger();
-        public static final Type<ImageLoadRequestData> TYPE = new Type<>(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "image_load"));
-
-        public static final StreamCodec<ByteBuf, ImageLoadRequestData> STREAM_CODEC = StreamCodec.composite(
-                ByteBufCodecs.STRING_UTF8,
-                ImageLoadRequestData::id,
-                ImageLoadRequestData::new
-        );
-
-        @Override
-        public Type<? extends CustomPacketPayload> type() {
-            return TYPE;
-        }
-
-        @EventBusSubscriber
-        public static class DataHolder{
-            @SubscribeEvent
-            public static void register(RegisterPayloadHandlersEvent event){
-                final PayloadRegistrar registrar = event.registrar("1");
-                registrar.playBidirectional(
-                        ImageLoadRequestData.TYPE,
-                        ImageLoadRequestData.STREAM_CODEC,
-                        ServerPayloadHandler::handleDataOnMain
-                );
-            }
-
-            @SubscribeEvent
-            public static void register(RegisterClientPayloadHandlersEvent event){
-                event.register(
-                        ImageLoadRequestData.TYPE,
-                        ClientPayloadHandler::handleDataOnMain
-                );
-            }
-
-            public static class ServerPayloadHandler {
-                public static void handleDataOnMain(final ImageLoadRequestData data, final IPayloadContext context) {
-                    File imageData = ScreenshotHolder.findServerScreenshotData(data.id);
-                    if (imageData != null){
-                        byte[] bytes = null;
-                        try (FileInputStream fis = new FileInputStream(imageData)) {
-                            bytes = fis.readAllBytes();
-                        }catch (IOException e){
-                            LOGGER.error("Error read server file: {}", e.getMessage());
-                        }
-
-                        PacketDistributor.sendToPlayer((ServerPlayer) context.player(), new ImageData(bytes, data.id, imageData.getName().substring(imageData.getName().lastIndexOf(".")+1)));
-                        LOGGER.info("Successful find {}", data.id);
-                    }else{
-                        PacketDistributor.sendToPlayer((ServerPlayer) context.player(), new ImageLoadRequestData(data.id));
-                        LOGGER.warn("{} don't exist", data.id);
-                    }
-                }
-            }
-
-            public static class ClientPayloadHandler {
-                public static void handleDataOnMain(final ImageLoadRequestData data, final IPayloadContext context) {
-                    ScreenshotData.put(data.id, new Pair<>(true, null));
-                }
-            }
-        }
-    }
-
-    public record ImageData(byte[] data, String imageId, String imageType) implements CustomPacketPayload {
-        public static final Type<ImageData> TYPE = new Type<>(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "image"));
-
-        public static final StreamCodec<ByteBuf, ImageData> STREAM_CODEC = StreamCodec.composite(
-                ByteBufCodecs.BYTE_ARRAY,
-                ImageData::data,
-                ByteBufCodecs.STRING_UTF8,
-                ImageData::imageId,
-                ByteBufCodecs.STRING_UTF8,
-                ImageData::imageType,
-                ImageData::new
-        );
-
-        @Override
-        public Type<? extends CustomPacketPayload> type() {
-            return TYPE;
-        }
-
-        @EventBusSubscriber
-        public static class DataHolder{
-            @SubscribeEvent
-            public static void register(RegisterPayloadHandlersEvent event){
-                final PayloadRegistrar registrar = event.registrar("1");
-                registrar.playBidirectional(
-                        ImageData.TYPE,
-                        ImageData.STREAM_CODEC,
-                        ServerPayloadHandler::handleDataOnMain
-                );
-            }
-
-            @SubscribeEvent
-            public static void register(RegisterClientPayloadHandlersEvent event){
-                event.register(
-                        ImageData.TYPE,
-                        ClientPayloadHandler::handleDataOnMain
-                );
-            }
-
-            public static class ServerPayloadHandler {
-                public static void handleDataOnMain(final ImageData data, final IPayloadContext context) {
-                    File modDataDir = new File(Minecraft.getInstance().gameDirectory, VisualShare.MOD_ID);
-                    modDataDir.mkdir();
-                    File fastScrDataDir = new File(modDataDir, "screenshot");
-                    fastScrDataDir.mkdir();
-                    File serverDir = new File(fastScrDataDir, "server");
-                    serverDir.mkdir();
-                    File imageData = new File(serverDir, data.imageId + "." + data.imageType);
-
-                    try (FileOutputStream fos = new FileOutputStream(imageData)) {
-                        fos.write(data.data);
-                        LOGGER.info("{} upload {}", context.player().getDisplayName().getString(), data.imageId);
-                    }catch (IOException e){
-                        LOGGER.error("Error write to server file: {}", e.getMessage());
-                    }
-
-//                    PacketDistributor.sendToAllPlayers(data);
-                }
-            }
-
-            public static class ClientPayloadHandler {
-                public static void handleDataOnMain(final ImageData data, final IPayloadContext context) {
-                    File modDataDir = new File(Minecraft.getInstance().gameDirectory, VisualShare.MOD_ID);
-                    modDataDir.mkdir();
-                    File fastScrDataDir = new File(modDataDir, "screenshot");
-                    fastScrDataDir.mkdir();
-                    File clientDir = new File(fastScrDataDir, "client");
-                    clientDir.mkdir();
-                    File imageData = new File(clientDir, data.imageId + "." + data.imageType);
-
-                    try (FileOutputStream fos = new FileOutputStream(imageData)) {
-                        fos.write(data.data);
-                        LOGGER.info("Successful load image {}", data.imageId);
-                    }catch (IOException e){
-                        LOGGER.error("Error write to client file: {}", e.getMessage());
-                    }
-
-                    Minecraft.getInstance().execute(() -> {
-                        try {
-                            NativeImage image = null;
-                            if (data.imageType.equals(Config.DataType.PNG.getType())) {
-                                image = NativeImage.read(data.data);
-                            }else if (data.imageType.equals(Config.DataType.AVIF.getType())){
-                                BufferedImage buffer = ImageIO.read(new ByteArrayInputStream(data.data));
-                                image = new NativeImage(buffer.getWidth(), buffer.getHeight(), true);
-                                for (int y = 0 ; y < image.getHeight() ; y++){
-                                    for (int x = 0 ; x < image.getWidth() ; x++){
-                                        image.setPixel(x, y, buffer.getRGB(x, y));
-                                    }
-                                }
-                            }
-
-                            if (image != null) {
-                                Identifier textureId = Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, data.imageId);
-                                DynamicTexture texture = new DynamicTexture(textureId::toString, image);
-                                Minecraft.getInstance().getTextureManager().register(textureId, texture);
-                                Screenshot.ScreenshotData.put(data.imageId, new Pair<>(true, new Vector2i(image.getWidth(), image.getHeight())));
-                            }
-                        } catch (IOException e) {
-                            LOGGER.error("Error turn data into texture: {}", e.getMessage());
-                        }
-                    });
-                }
-            }
-        }
     }
 }

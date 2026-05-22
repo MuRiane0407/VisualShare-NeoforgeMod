@@ -3,8 +3,8 @@ package com.muriane.visual_share.func.drawing_board;
 import com.mojang.blaze3d.platform.InputConstants;
 import com.mojang.blaze3d.platform.NativeImage;
 import com.muriane.visual_share.Config;
-import com.muriane.visual_share.func.screenshot.ImageViewScreen;
-import com.muriane.visual_share.func.screenshot.ImageViewWidget;
+import com.muriane.visual_share.func.screenshot.ScreenshotScreen;
+import com.muriane.visual_share.func.screenshot.ScreenshotWidget;
 import com.muriane.visual_share.key.ModKeys;
 import net.minecraft.client.Minecraft;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -23,7 +23,7 @@ public class DrawingBoard {
         public static void onKey(InputEvent.Key event) {
             Minecraft mc = Minecraft.getInstance();
             if (event.getKey() == ModKeys.DRAWING_BOARD_DRAWING_BOARD.getKey().getValue() && event.getAction() == InputConstants.PRESS) {
-                if (mc.level != null && !(mc.screen instanceof ImageViewScreen)) { // 用level来判断玩家是否已经在某个服务器中
+                if (mc.level != null && !(mc.screen instanceof ScreenshotScreen)) { // 用level来判断玩家是否已经在某个服务器中
                     NativeImage image = new NativeImage(Config.CLIENT.DRAWING_BOARD_WIDTH.get(), Config.CLIENT.DRAWING_BOARD_HEIGHT.get(), true);
 
                     Color color = new Color(256*256*255+256*255+255);
@@ -34,8 +34,8 @@ public class DrawingBoard {
                         }
                     }
 
-                    imageViewScreen = new ImageViewScreen(mc.screen, image);
-                    imageViewScreen.setImageInterActionMode(ImageViewWidget.InteractionMode.BRUSH);
+                    imageViewScreen = new ScreenshotScreen(mc.screen, image);
+                    imageViewScreen.setImageInterActionMode(ScreenshotWidget.InteractionMode.BRUSH);
                     mc.setScreen(imageViewScreen);
                 }
             }
