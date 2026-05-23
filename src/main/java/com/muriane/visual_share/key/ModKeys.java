@@ -10,6 +10,15 @@ import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
 
 public class ModKeys {
+    public static KeyMapping.Category MISC_KEY_CATEGORY = new KeyMapping.Category(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "misc"));
+    public static KeyMapping MISC_ITEM_SHOW = new KeyMapping(
+            "key.visual_share.misc.item_show",
+            KeyConflictContext.UNIVERSAL,
+            InputConstants.Type.KEYSYM,
+            InputConstants.UNKNOWN.getValue(),
+            MISC_KEY_CATEGORY
+    );
+
     public static KeyMapping.Category SCREENSHOT_KEY_CATEGORY = new KeyMapping.Category(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "screenshot"));
     public static KeyMapping SCREENSHOT_SCREENSHOT = new KeyMapping(
             "key.visual_share.screenshot.screenshot",
@@ -104,6 +113,8 @@ public class ModKeys {
     public static class KeyHolder{
         @SubscribeEvent
         public static void registerKey(RegisterKeyMappingsEvent event){
+            event.register(MISC_ITEM_SHOW);
+
             event.register(SCREENSHOT_SCREENSHOT);
             event.register(SCREENSHOT_SELECTION);
             event.register(SCREENSHOT_BRUSH);

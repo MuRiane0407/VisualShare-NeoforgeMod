@@ -276,7 +276,7 @@ public class ScreenshotPayload {
 
             public static class ServerPayloadHandler {
                 public static void handleDataOnMain(final ImageLoadRequestData data, final IPayloadContext context) {
-                    File imageData = Screenshot.ScreenshotHolder.findServerScreenshotData(data.id);
+                    File imageData = Screenshot.findServerScreenshotData(data.id);
                     if (imageData != null){
                         byte[] bytes = null;
                         try (FileInputStream fis = new FileInputStream(imageData)) {

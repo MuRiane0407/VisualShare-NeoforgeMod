@@ -17,6 +17,7 @@ import net.minecraft.client.renderer.texture.DynamicTexture;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.network.chat.MutableComponent;
@@ -43,23 +44,20 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@EventBusSubscriber
 public class Screenshot {
     public static Logger LOGGER = LogUtils.getLogger();
     public static ScreenshotScreen imageViewScreen;
     public static Map<String, Pair<Boolean, Vector2i>> ScreenshotData = new HashMap<>(); // 图片ID, 是否存在, 尺寸
-    public static double maxThumbnailSizePercent = Config.CLIENT.SCREENSHOT_SHARE_THUMBNAIL_IMAGE_SIZE.getAsDouble();
-    public static double maxFullSizePercent = Config.CLIENT.SCREENSHOT_SHARE_FULL_IMAGE_SIZE.getAsDouble();
+    public static String curTextureId = null;
 
-    @EventBusSubscriber
-    public static class ScreenshotHolder{
-        public static String curTextureId = null;
-
-        /// 按键检测
-        @SubscribeEvent
-        public static void onKey(InputEvent.Key event){
-            Minecraft mc = Minecraft.getInstance();
-            if (event.getKey() == ModKeys.SCREENSHOT_SCREENSHOT.getKey().getValue() && event.getAction() == InputConstants.PRESS){
-                if (mc.level != null && !(mc.screen instanceof ScreenshotScreen)){ // 用level来判断玩家是否已经在某个服务器中
+    /// 按键检测
+    @SubscribeEvent
+    public static void onKey(InputEvent.Key event){
+        Minecraft mc = Minecraft.getInstance();
+        if (event.getAction() == InputConstants.PRESS) {
+            if (event.getKey() == ModKeys.SCREENSHOT_SCREENSHOT.getKey().getValue()) {
+                if (mc.level != null && !(mc.screen instanceof ScreenshotScreen)) { // 用level来判断玩家是否已经在某个服务器中
                     com.muriane.visual_share.method.MScreenshot.takeScreenshot(
                             mc.getMainRenderTarget(),
                             1,
@@ -69,260 +67,262 @@ public class Screenshot {
                             }
                     );
                 }
-            }else if (imageViewScreen != null && mc.screen == imageViewScreen) { // 只有在截图界面中才能操作
-                if (event.getAction() == InputConstants.PRESS) {
-                    if (event.getKey() == ModKeys.SCREENSHOT_SELECTION.getKey().getValue()){
-                        imageViewScreen.setImageInterActionMode(ScreenshotWidget.InteractionMode.SELECTION);
-                    }else if (event.getKey() == ModKeys.SCREENSHOT_BRUSH.getKey().getValue()){
-                        imageViewScreen.setImageInterActionMode(ScreenshotWidget.InteractionMode.BRUSH);
-                    }else if (event.getKey() == ModKeys.SCREENSHOT_UNDO_REDO.getKey().getValue()){
-                        if (mc.hasControlDown()){
-                            if (!mc.hasShiftDown()){
-                                imageViewScreen.imageUndo();
-                            }else{
-                                imageViewScreen.imageRedo();
-                            }
-                        }
-                    }else if (event.getKey() == ModKeys.SCREENSHOT_SAVE.getKey().getValue()){
-                        if (mc.hasControlDown()) {
-                            imageViewScreen.imageSave();
-                        }
-                    }else if (event.getKey() == ModKeys.SCREENSHOT_SHARE.getKey().getValue()){
-                        if (mc.hasControlDown()) {
-                            imageViewScreen.imageShare();
+            } else if (imageViewScreen != null && mc.screen == imageViewScreen) { // 只有在截图界面中才能操作
+                if (event.getKey() == ModKeys.SCREENSHOT_SELECTION.getKey().getValue()) {
+                    imageViewScreen.setImageInterActionMode(ScreenshotWidget.InteractionMode.SELECTION);
+                } else if (event.getKey() == ModKeys.SCREENSHOT_BRUSH.getKey().getValue()) {
+                    imageViewScreen.setImageInterActionMode(ScreenshotWidget.InteractionMode.BRUSH);
+                } else if (event.getKey() == ModKeys.SCREENSHOT_UNDO_REDO.getKey().getValue()) {
+                    if (mc.hasControlDown()) {
+                        if (!mc.hasShiftDown()) {
+                            imageViewScreen.imageUndo();
+                        } else {
+                            imageViewScreen.imageRedo();
                         }
                     }
-
-                    if (imageViewScreen.getImageInterActionMode() == ScreenshotWidget.InteractionMode.SELECTION) {
-                        if (event.getKey() == ModKeys.SCREENSHOT_CUT.getKey().getValue()) {
-                            imageViewScreen.imageCut();
-                        }
+                } else if (event.getKey() == ModKeys.SCREENSHOT_SAVE.getKey().getValue()) {
+                    if (mc.hasControlDown()) {
+                        imageViewScreen.imageSave();
                     }
+                } else if (event.getKey() == ModKeys.SCREENSHOT_SHARE.getKey().getValue()) {
+                    if (mc.hasControlDown()) {
+                        imageViewScreen.imageShare();
+                    }
+                }
 
-                    if (imageViewScreen.getImageInterActionMode() == ScreenshotWidget.InteractionMode.BRUSH) {
-                        if (event.getKey() == ModKeys.SCREENSHOT_COLOR_PALETTE.getKey().getValue()) {
-                            imageViewScreen.imageColorPalette();
-                        } else if (event.getKey() == ModKeys.SCREENSHOT_BRUSH_SIZE.getKey().getValue()) {
-                            imageViewScreen.imageBrushSize();
-                        }
+                if (imageViewScreen.getImageInterActionMode() == ScreenshotWidget.InteractionMode.SELECTION) {
+                    if (event.getKey() == ModKeys.SCREENSHOT_CUT.getKey().getValue()) {
+                        imageViewScreen.imageCut();
+                    }
+                }
+
+                if (imageViewScreen.getImageInterActionMode() == ScreenshotWidget.InteractionMode.BRUSH) {
+                    if (event.getKey() == ModKeys.SCREENSHOT_COLOR_PALETTE.getKey().getValue()) {
+                        imageViewScreen.imageColorPalette();
+                    } else if (event.getKey() == ModKeys.SCREENSHOT_BRUSH_SIZE.getKey().getValue()) {
+                        imageViewScreen.imageBrushSize();
                     }
                 }
             }
         }
+    }
 
-        /// 转换带标识符的信息为图片信息
-        @SubscribeEvent
-        public static void onServerReceivedChat(ServerChatEvent event){
-            String prefix = Config.SERVER.SCREENSHOT_SHARE_IMAGE_PREFIX.get();
-            String subfix = Config.SERVER.SCREENSHOT_SHARE_IMAGE_SUBFIX.get();
+    /// 转换带标识符的信息为图片信息
+    public static MutableComponent tranInfoToImage(Component chat){
+        String prefix = Config.SERVER.SCREENSHOT_SHARE_IMAGE_PREFIX.get();
+        String subfix = Config.SERVER.SCREENSHOT_SHARE_IMAGE_SUBFIX.get();
 
-            Component chat = event.getMessage();
-            MutableComponent newChat = MutableComponent.create(Component.empty().getContents());
-            for (Component component : chat.toFlatList()){
-                Component cur = component;
-                String curStr = cur.getString();
-                boolean end = false;
-                int time = curStr.length(); // 防止死循环
-                while (!cur.equals(Component.empty()) && !end && time > 0){
-                    int is = curStr.indexOf(prefix);
-                    int ie = curStr.indexOf(subfix);
-                    if (is != -1 && ie != -1) {
-                        newChat.append(Component.literal(curStr.substring(0, is)).withStyle(cur.getStyle()));
+        MutableComponent newChat = MutableComponent.create(Component.empty().getContents());
+        for (Component component : chat.toFlatList()){
+            Component cur = component;
+            String curStr = cur.getString();
 
-                        String find = curStr.substring(is + prefix.length(), ie);
-                        if (findServerScreenshotData(find) != null){
-                            Player player = Minecraft.getInstance().player;
-                            if (player != null){
-                                CompoundTag tag = new CompoundTag();
-                                tag.putString("texture_id", find);
-                                ItemStackTemplate virtualImage = new ItemStackTemplate(
-                                        ModItems.VIRTUAL_IMAGE_ITEM, DataComponentPatch.builder().set(DataComponents.CUSTOM_DATA, CustomData.of(tag)).build()
-                                );
-                                newChat.append(Component.translatable("chat.visual_share.screenshot.image").withStyle(style -> style
-                                        .withColor(ChatFormatting.BLUE)
-                                        .withHoverEvent(new HoverEvent.ShowItem(virtualImage)
-                                        )));
-                            }
-                        }else{
-                            newChat.append(Component.literal(prefix + find + subfix).withStyle(cur.getStyle()));
+            boolean end = false;
+            int time = curStr.length(); // 防止死循环
+            while (!cur.equals(Component.empty()) && !end && time > 0){
+                int is = curStr.indexOf(prefix);
+                int ie = curStr.indexOf(subfix);
+                if (is != -1 && ie != -1) {
+                    newChat.append(Component.literal(curStr.substring(0, is)).withStyle(cur.getStyle()));
+
+                    String find = curStr.substring(is + prefix.length(), ie);
+                    if (findServerScreenshotData(find) != null){
+                        Player player = Minecraft.getInstance().player;
+                        if (player != null){
+                            CompoundTag tag = new CompoundTag();
+                            tag.putString("texture_id", find);
+                            ItemStackTemplate virtualImage = new ItemStackTemplate(
+                                    ModItems.VIRTUAL_IMAGE_ITEM, DataComponentPatch.builder().set(DataComponents.CUSTOM_DATA, CustomData.of(tag)).build()
+                            );
+
+                            newChat.append(Component.translatable("chat.visual_share.screenshot.image").withStyle(style -> style
+                                    .withColor(ChatFormatting.BLUE)
+                                    .withHoverEvent(new HoverEvent.ShowItem(virtualImage))
+                            ));
                         }
-
-                        String nextCurStr = curStr.substring(ie + subfix.length());
-                        cur = Component.literal(nextCurStr).withStyle(cur.getStyle());
-                    } else {
-                        newChat.append(cur);
-                        end = true;
-                    }
-                    time--;
-                }
-            }
-            event.setMessage(newChat);
-        }
-
-        public static File findServerScreenshotData(String name){
-            // 在本地文件中查找
-            File clientScreenshotData = new File(Minecraft.getInstance().gameDirectory+"/"+VisualShare.MOD_ID+"/screenshot/server");
-            if (clientScreenshotData.exists()){
-                File[] files = clientScreenshotData.listFiles();
-                if (files != null) {
-                    for (File data : files){
-                        if (data.getName().substring(0, data.getName().lastIndexOf(".")).equals(name)){
-                            return data;
-                        }
-                    }
-                }
-            }
-
-            return null;
-        }
-
-        /// 通过虚拟的物品Tooltip渲染图片
-        @SubscribeEvent
-        public static void onMakeItemTooltip(ItemTooltipEvent event){
-            ItemStack stack = event.getItemStack();
-            if (stack.is(ModItems.VIRTUAL_IMAGE_ITEM)){
-                curTextureId = stack.getItemName().getString();
-                List<Component> tooltips = event.getToolTip();
-                tooltips.clear();
-
-                // 特殊情况就会看到这个，比如textureId已经过时无法渲染对应的texture
-                Pair<Boolean, Vector2i> info = ScreenshotData.getOrDefault(curTextureId, null);
-                if (info != null && info.getFirst()) {
-                    if (info.getSecond() != null){
-                        tooltips.add(Component.translatable("tip.visual_share.screenshot.image.image"));
                     }else{
-                        tooltips.add(Component.translatable("tip.visual_share.screenshot.image.no_image"));
+                        newChat.append(Component.literal(prefix + find + subfix).withStyle(cur.getStyle()));
                     }
+
+                    curStr = curStr.substring(ie + subfix.length());
+                    cur = Component.literal(curStr).withStyle(cur.getStyle());
+                } else {
+                    newChat.append(cur);
+                    end = true;
+                }
+                time--;
+            }
+        }
+
+        return newChat;
+    }
+
+    public static File findServerScreenshotData(String name){
+        // 在本地文件中查找
+        File clientScreenshotData = new File(Minecraft.getInstance().gameDirectory+"/"+VisualShare.MOD_ID+"/screenshot/server");
+        if (clientScreenshotData.exists()){
+            File[] files = clientScreenshotData.listFiles();
+            if (files != null) {
+                for (File data : files){
+                    if (data.getName().substring(0, data.getName().lastIndexOf(".")).equals(name)){
+                        return data;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /// 通过虚拟的物品Tooltip渲染图片
+    @SubscribeEvent
+    public static void onMakeItemTooltip(ItemTooltipEvent event){
+        ItemStack stack = event.getItemStack();
+        if (stack.is(ModItems.VIRTUAL_IMAGE_ITEM)){
+            curTextureId = stack.getItemName().getString();
+            List<Component> tooltips = event.getToolTip();
+            tooltips.clear();
+
+            // 特殊情况就会看到这个，比如textureId已经过时无法渲染对应的texture
+            Pair<Boolean, Vector2i> info = ScreenshotData.getOrDefault(curTextureId, null);
+            if (info != null && info.getFirst()) {
+                if (info.getSecond() != null){
+                    tooltips.add(Component.translatable("tip.visual_share.screenshot.image.image"));
                 }else{
-                    tooltips.add(Component.translatable("tip.visual_share.screenshot.image.image_loading"));
+                    tooltips.add(Component.translatable("tip.visual_share.screenshot.image.no_image"));
                 }
             }else{
+                tooltips.add(Component.translatable("tip.visual_share.screenshot.image.image_loading"));
+            }
+        }else{
+            curTextureId = null;
+        }
+    }
+
+    @SubscribeEvent
+    public static void onRenderTooltip(RenderTooltipEvent.Pre event){
+        if (curTextureId != null){
+            if (!event.getItemStack().is(ModItems.VIRTUAL_IMAGE_ITEM)){
                 curTextureId = null;
-            }
-        }
-
-        @SubscribeEvent
-        public static void onRenderTooltip(RenderTooltipEvent.Pre event){
-            if (curTextureId != null){
-                if (!event.getItemStack().is(ModItems.VIRTUAL_IMAGE_ITEM)){
-                    curTextureId = null;
-                }else{
-                    Pair<Boolean, Vector2i> info = ScreenshotData.getOrDefault(curTextureId, null);
-                    if (info == null) {
-                        tryGetImage();
-                    }else{
-                        if (info.getFirst() == true && info.getSecond() != null){
-                            renderImage(event, info.getSecond());
-                        }
-                    }
-                }
-            }
-        }
-
-        public static void tryGetImage(){
-            ScreenshotData.put(curTextureId, new Pair<>(false, null));
-
-            File imageData = findClientScreenshotData(curTextureId);
-            if (imageData != null){
-                String imageType = imageData.getName().substring(imageData.getName().lastIndexOf(".")+1);
-                try (FileInputStream fis = new FileInputStream(imageData)){
-                    NativeImage image = null;
-                    if (imageType.equals(Config.DataType.PNG.getType())) {
-                        image = NativeImage.read(fis);
-                    }else if (imageType.equals(Config.DataType.AVIF.getType())){
-                        BufferedImage buffer = ImageIO.read(new ByteArrayInputStream(fis.readAllBytes()));
-                        image = new NativeImage(buffer.getWidth(), buffer.getHeight(), true);
-                        for (int y = 0 ; y < image.getHeight() ; y++){
-                            for (int x = 0 ; x < image.getWidth() ; x++){
-                                image.setPixel(x, y, buffer.getRGB(x, y));
-                            }
-                        }
-                    }
-
-                    if (image != null){
-                        Identifier textureId = Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, curTextureId);
-                        DynamicTexture texture = new DynamicTexture(textureId::toString, image);
-                        Minecraft.getInstance().getTextureManager().register(textureId, texture);
-                        Screenshot.ScreenshotData.put(curTextureId, new Pair<>(true, new Vector2i(image.getWidth(), image.getHeight())));
-                    }
-                }catch (IOException e){
-                    LOGGER.error("Error read client file: {}", e.getMessage());
-                }
             }else{
-                ClientPacketDistributor.sendToServer(new ScreenshotPayload.ImageLoadRequestData(curTextureId));
-            }
-        }
-
-        public static File findClientScreenshotData(String name){
-            // 在本地文件中查找
-            File clientScreenshotData = new File(Minecraft.getInstance().gameDirectory+"/"+VisualShare.MOD_ID+"/screenshot/client");
-            if (clientScreenshotData.exists()){
-                File[] files = clientScreenshotData.listFiles();
-                if (files != null) {
-                    for (File data : files){
-                        if (data.getName().substring(0, data.getName().lastIndexOf(".")).equals(name)){
-                            return data;
-                        }
+                Pair<Boolean, Vector2i> info = ScreenshotData.getOrDefault(curTextureId, null);
+                if (info == null) {
+                    tryGetImage();
+                }else{
+                    if (info.getFirst() == true && info.getSecond() != null){
+                        renderImage(event, info.getSecond());
                     }
                 }
             }
-
-            return null;
         }
+    }
 
-        public static void renderImage(RenderTooltipEvent.Pre event, Vector2i size){
-            Minecraft mc = Minecraft.getInstance();
-            Window window = Minecraft.getInstance().getWindow();
-            int guiScale = window.getGuiScale();
-            int outlineSize = 2;
-            int outlineColor = new Color(255, 255, 255).getRGB();
-            int x, y, width, height;
-            if (mc.hasShiftDown()) {
-                Vector2i fullSize = getFullSize(size);
-                width = fullSize.x;
-                height = fullSize.y;
-            } else {
-                Vector2i thumbnailSize = getThumbnailSize(size);
-                width = thumbnailSize.x;
-                height = thumbnailSize.y;
+    public static void tryGetImage(){
+        ScreenshotData.put(curTextureId, new Pair<>(false, null));
+
+        File imageData = findClientScreenshotData(curTextureId);
+        if (imageData != null){
+            String imageType = imageData.getName().substring(imageData.getName().lastIndexOf(".")+1);
+            try (FileInputStream fis = new FileInputStream(imageData)){
+                NativeImage image = null;
+                if (imageType.equals(Config.DataType.PNG.getType())) {
+                    image = NativeImage.read(fis);
+                }else if (imageType.equals(Config.DataType.AVIF.getType())){
+                    BufferedImage buffer = ImageIO.read(new ByteArrayInputStream(fis.readAllBytes()));
+                    image = new NativeImage(buffer.getWidth(), buffer.getHeight(), true);
+                    for (int y = 0 ; y < image.getHeight() ; y++){
+                        for (int x = 0 ; x < image.getWidth() ; x++){
+                            image.setPixel(x, y, buffer.getRGB(x, y));
+                        }
+                    }
+                }
+
+                if (image != null){
+                    Identifier textureId = Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, curTextureId);
+                    DynamicTexture texture = new DynamicTexture(textureId::toString, image);
+                    Minecraft.getInstance().getTextureManager().register(textureId, texture);
+                    Screenshot.ScreenshotData.put(curTextureId, new Pair<>(true, new Vector2i(image.getWidth(), image.getHeight())));
+                }
+            }catch (IOException e){
+                LOGGER.error("Error read client file: {}", e.getMessage());
             }
-            x = Math.max(outlineSize, Math.min(window.getWidth() / guiScale - width - outlineSize, event.getX() + 10));
-            y = Math.max(outlineSize, Math.min(window.getHeight() / guiScale - height - outlineSize, event.getY() - height / 2));
+        }else{
+            ClientPacketDistributor.sendToServer(new ScreenshotPayload.ImageLoadRequestData(curTextureId));
+        }
+    }
 
-            GuiGraphicsExtractor graphics = event.getGraphics();
-            graphics.fill(x-outlineSize, y-outlineSize, x+width+outlineSize, y+height+outlineSize, outlineColor);
-            graphics.blit(RenderPipelines.GUI_TEXTURED, Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, curTextureId), x, y, 0, 0, width, height, width, height);
-
-            event.setCanceled(true);
+    public static File findClientScreenshotData(String name){
+        // 在本地文件中查找
+        File clientScreenshotData = new File(Minecraft.getInstance().gameDirectory+"/"+VisualShare.MOD_ID+"/screenshot/client");
+        if (clientScreenshotData.exists()){
+            File[] files = clientScreenshotData.listFiles();
+            if (files != null) {
+                for (File data : files){
+                    if (data.getName().substring(0, data.getName().lastIndexOf(".")).equals(name)){
+                        return data;
+                    }
+                }
+            }
         }
 
-        public static Vector2i getFullSize(Vector2i origin){
-            Window window = Minecraft.getInstance().getWindow();
-            int width = origin.x;
-            int height = origin.y;
-            int toWidth = (int) (maxFullSizePercent * window.getWidth()/window.getGuiScale());
-            int toHeight = (int) (maxFullSizePercent * window.getHeight()/window.getGuiScale());
-            float widthScale = (float) toWidth /width;
-            float heightScale = (float) toHeight /height;
-            float useScale = Math.min(widthScale, heightScale);
-            width = (int) (width*useScale);
-            height = (int) (height*useScale);
-            return new Vector2i(width, height);
-        }
+        return null;
+    }
 
-        public static Vector2i getThumbnailSize(Vector2i origin){
-            Window window = Minecraft.getInstance().getWindow();
-            int width = origin.x;
-            int height = origin.y;
-            int toWidth = (int) (maxThumbnailSizePercent * window.getWidth()/window.getGuiScale());
-            int toHeight = (int) (maxThumbnailSizePercent * window.getHeight()/window.getGuiScale());
-            float widthScale = (float) toWidth/width;
-            float heightScale = (float) toHeight/height;
-            float useScale = Math.min(widthScale, heightScale);
-            width = (int) (width*useScale);
-            height = (int) (height*useScale);
-            return new Vector2i(width, height);
+    public static void renderImage(RenderTooltipEvent.Pre event, Vector2i size){
+        Minecraft mc = Minecraft.getInstance();
+        Window window = Minecraft.getInstance().getWindow();
+        int guiScale = window.getGuiScale();
+        int outlineSize = 2;
+        int outlineColor = new Color(255, 255, 255).getRGB();
+        int x, y, width, height;
+        if (mc.hasShiftDown()) {
+            Vector2i fullSize = getFullSize(size);
+            width = fullSize.x;
+            height = fullSize.y;
+        } else {
+            Vector2i thumbnailSize = getThumbnailSize(size);
+            width = thumbnailSize.x;
+            height = thumbnailSize.y;
         }
+        x = Math.max(outlineSize, Math.min(window.getWidth() / guiScale - width - outlineSize, event.getX() + 10));
+        y = Math.max(outlineSize, Math.min(window.getHeight() / guiScale - height - outlineSize, event.getY() - height / 2));
+
+        GuiGraphicsExtractor graphics = event.getGraphics();
+        graphics.fill(x-outlineSize, y-outlineSize, x+width+outlineSize, y+height+outlineSize, outlineColor);
+        graphics.blit(RenderPipelines.GUI_TEXTURED, Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, curTextureId), x, y, 0, 0, width, height, width, height);
+
+        event.setCanceled(true);
+    }
+
+    public static Vector2i getFullSize(Vector2i origin){
+        double maxFullSizePercent = Config.CLIENT.SCREENSHOT_SHARE_FULL_IMAGE_SIZE.getAsDouble();
+        Window window = Minecraft.getInstance().getWindow();
+        int width = origin.x;
+        int height = origin.y;
+        int toWidth = (int) (maxFullSizePercent * window.getWidth()/window.getGuiScale());
+        int toHeight = (int) (maxFullSizePercent * window.getHeight()/window.getGuiScale());
+        float widthScale = (float) toWidth /width;
+        float heightScale = (float) toHeight /height;
+        float useScale = Math.min(widthScale, heightScale);
+        width = (int) (width*useScale);
+        height = (int) (height*useScale);
+        return new Vector2i(width, height);
+    }
+
+    public static Vector2i getThumbnailSize(Vector2i origin){
+        double maxThumbnailSizePercent = Config.CLIENT.SCREENSHOT_SHARE_THUMBNAIL_IMAGE_SIZE.getAsDouble();
+        Window window = Minecraft.getInstance().getWindow();
+        int width = origin.x;
+        int height = origin.y;
+        int toWidth = (int) (maxThumbnailSizePercent * window.getWidth()/window.getGuiScale());
+        int toHeight = (int) (maxThumbnailSizePercent * window.getHeight()/window.getGuiScale());
+        float widthScale = (float) toWidth/width;
+        float heightScale = (float) toHeight/height;
+        float useScale = Math.min(widthScale, heightScale);
+        width = (int) (width*useScale);
+        height = (int) (height*useScale);
+        return new Vector2i(width, height);
+    }
 
 //        /// 清理缓存数据
 //        @SubscribeEvent
@@ -357,5 +357,4 @@ public class Screenshot {
 //                }
 //            }
 //        }
-    }
 }

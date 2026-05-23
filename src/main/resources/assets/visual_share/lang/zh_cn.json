@@ -8,9 +8,13 @@
   "tip.visual_share.screenshot.share": "分享信息已写入粘贴板, 请粘贴输入聊天栏以使用",
   "tip.visual_share.screenshot.fail_share.cooldown": "分享冷却中, 剩余时间: %s秒",
   "tip.visual_share.screenshot.fail_share.no_exist": "分享的图片不存在",
+  "tip.visual_share.screenshot.fail_share.not_enable": "服务器未启用图片分享",
   "tip.visual_share.screenshot.image.image": "图片",
   "tip.visual_share.screenshot.image.no_image": "图片不存在",
   "tip.visual_share.screenshot.image.image_loading": "图片加载中",
+
+  "key.category.visual_share.misc": "视觉分享 | 杂项",
+  "key.visual_share.misc.item_show": "物品分享",
 
   "key.category.visual_share.screenshot": "视觉分享 | 截图",
   "key.visual_share.screenshot.screenshot": "截图",
@@ -46,6 +50,29 @@
   "button.visual_share.screenshot.share.name": "分享",
   "button.visual_share.screenshot.share.info": "将分享信息写入粘贴板, 你需要粘贴输入聊天栏以使用",
 
+  "visual_share.configuration.title": "视觉分享",
+  "visual_share.configuration.section.visual.share.client.toml": "客户端设置",
+  "visual_share.configuration.section.visual.share.client.toml.title": "视觉分享 | 客户端设置",
+  "visual_share.configuration.section.visual.share.server.toml": "服务端设置",
+  "visual_share.configuration.section.visual.share.server.toml.title": "视觉分享 | 服务端设置",
+
+  "visual_share.configuration.item_show": "物品展示设置",
+  "visual_share.configuration.item_show.button": "物品展示设置",
+  "visual_share.configuration.item_show.tooltip": "物品展示设置",
+
+  "visual_share.configuration.item_show.enable": "启用",
+  "visual_share.configuration.item_show.enable.tooltip": "启用物品展示",
+  "visual_share.configuration.item_show.prefix": "前缀",
+  "visual_share.configuration.item_show.prefix.tooltip": "用于物品展示的前缀标记\n§7如果前缀为\"[i\", 后缀为\"]\"\n§7若需要展示手上的物品: [i]\n§7若需要展示第8格的物品: [i8]",
+  "visual_share.configuration.item_show.subfix": "后缀",
+  "visual_share.configuration.item_show.subfix.tooltip": "用于物品展示的后缀标记\n§7如果前缀为\"[i\", 后缀为\"]\"\n§7若需要展示手上的物品: [i]\n§7若需要展示第8格的物品: [i8]",
+  "visual_share.configuration.item_show.custom_empty_name": "自定义空名称",
+  "visual_share.configuration.item_show.custom_empty_name.tooltip": "当物品不存在时, 使用该名称\n当该值为空时，使用空气的名称",
+  "visual_share.configuration.item_show.custom_empty_description": "自定义空描述",
+  "visual_share.configuration.item_show.custom_empty_description.tooltip": "当物品不存在时, 使用该描述\n当该值为空时，使用空气的描述",
+  "visual_share.configuration.item_show.directly_send": "直接发送",
+  "visual_share.configuration.item_show.directly_send.tooltip": "当按下物品分享按键时\n若真, 直接发送消息\n若假, 将消息写入粘贴板",
+
   "visual_share.configuration.screenshot": "截图设置",
   "visual_share.configuration.screenshot.button": "截图设置",
   "visual_share.configuration.screenshot.tooltip": "截图设置",
@@ -59,12 +86,8 @@
   "visual_share.configuration.share_param.button": "分享参数设置",
   "visual_share.configuration.share_param.tooltip": "分享参数设置, 是否生效取决于服务端的\"覆盖客户端参数\"",
 
-  "visual_share.configuration.title": "视觉分享",
-  "visual_share.configuration.section.visual.share.client.toml": "客户端设置",
-  "visual_share.configuration.section.visual.share.client.toml.title": "视觉分享 | 客户端设置",
-  "visual_share.configuration.section.visual.share.server.toml": "服务端设置",
-  "visual_share.configuration.section.visual.share.server.toml.title": "视觉分享 | 服务端设置",
-
+  "visual_share.configuration.screenshot.share.enable": "启用",
+  "visual_share.configuration.screenshot.share.enable.tooltip": "启用图片分享",
   "visual_share.configuration.screenshot.share.override_client_param": "覆盖客户端参数",
   "visual_share.configuration.screenshot.share.override_client_param.tooltip": "决定是否覆盖客户端参数\n当你不希望图片上下传数据过大时可以通过此设置来间接限制\n§7NO: 不覆盖\n§7MAX: 如果客户端的参数过大\n§7MIN: 如果客户端的参数过小\nALWAYS: 总是覆盖",
   "visual_share.configuration.screenshot.share_data_type": "分享数据类型",

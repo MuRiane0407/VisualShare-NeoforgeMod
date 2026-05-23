@@ -1,6 +1,5 @@
 package com.muriane.visual_share;
 
-import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -22,6 +21,13 @@ public class Config {
     }
 
     public static class Server {
+        public final ModConfigSpec.BooleanValue ENABLE_ITEM_SHOW;
+        public final ModConfigSpec.ConfigValue<String> ITEM_SHOW_PREFIX;
+        public final ModConfigSpec.ConfigValue<String> ITEM_SHOW_SUBFIX;
+        public final ModConfigSpec.ConfigValue<String> ITEM_SHOW_CUSTOM_EMPTY_NAME;
+        public final ModConfigSpec.ConfigValue<String> ITEM_SHOW_CUSTOM_EMPTY_DESCRIPTION;
+
+        public final ModConfigSpec.BooleanValue ENABLE_SCREENSHOT_SHARE;
         public final ModConfigSpec.EnumValue<OverrideMode> SCREENSHOT_SHARE_OVERRIDE_CLIENT_PARAM;
         public final ModConfigSpec.EnumValue<DataType> SCREENSHOT_SHARE_DATA_TYPE;
         public final ModConfigSpec.IntValue SCREENSHOT_SHARE_AVIF_QUALITY;
@@ -34,8 +40,29 @@ public class Config {
         public final ModConfigSpec.ConfigValue<String> SCREENSHOT_SHARE_IMAGE_SUBFIX;
 
         Server(ModConfigSpec.Builder builder){
+            builder.push("item_show");
+            ENABLE_ITEM_SHOW = builder
+                    .translation("visual_share.configuration.item_show.enable")
+                    .define("enable", true);
+            ITEM_SHOW_PREFIX = builder
+                    .translation("visual_share.configuration.item_show.prefix")
+                    .define("prefix", "[i");
+            ITEM_SHOW_SUBFIX = builder
+                    .translation("visual_share.configuration.item_show.subfix")
+                    .define("subfix", "]");
+            ITEM_SHOW_CUSTOM_EMPTY_NAME = builder
+                    .translation("visual_share.configuration.item_show.custom_empty_name")
+                    .define("custom_empty_name", "");
+            ITEM_SHOW_CUSTOM_EMPTY_DESCRIPTION = builder
+                    .translation("visual_share.configuration.item_show.custom_empty_description")
+                    .define("custom_empty_description", "");
+            builder.pop();
+
             builder.push("screenshot");
             builder.push("share");
+            ENABLE_SCREENSHOT_SHARE = builder
+                    .translation("visual_share.configuration.screenshot.share.enable")
+                    .define("enable", true);
             SCREENSHOT_SHARE_OVERRIDE_CLIENT_PARAM = builder
                     .translation("visual_share.configuration.screenshot.share.override_client_param")
                     .defineEnum("override_client_param", OverrideMode.MAX);
@@ -70,15 +97,18 @@ public class Config {
                     .defineInRange("cooldown", 3, 0, 300);
             SCREENSHOT_SHARE_IMAGE_PREFIX = builder
                     .translation("visual_share.configuration.screenshot.share.image_prefix")
-                    .define("prefix", "<qs_fs>");
+                    .define("image_prefix", "<qs_fs>");
             SCREENSHOT_SHARE_IMAGE_SUBFIX = builder
                     .translation("visual_share.configuration.screenshot.share.image_subfix")
-                    .define("subfix", "</qs_fs>");
+                    .define("image_subfix", "</qs_fs>");
+            builder.pop();
             builder.pop();
         }
     }
 
     public static class Client {
+        public final ModConfigSpec.BooleanValue ITEM_SHOW_DIRECTLY_SEND;
+
         public final ModConfigSpec.EnumValue<DataType> SCREENSHOT_SHARE_DATA_TYPE;
         public final ModConfigSpec.IntValue SCREENSHOT_SHARE_AVIF_QUALITY;
         public final ModConfigSpec.IntValue SCREENSHOT_SHARE_AVIF_SPEED;
@@ -94,8 +124,13 @@ public class Config {
         public final ModConfigSpec.IntValue DRAWING_BOARD_BACKGROUND_COLOR;
 
         Client(ModConfigSpec.Builder builder){
-            builder.push("screenshot");
+            builder.push("item_show");
+            ITEM_SHOW_DIRECTLY_SEND = builder
+                    .translation("visual_share.configuration.item_show.directly_send")
+                    .define("directly_send", true);
+            builder.pop();
 
+            builder.push("screenshot");
             builder.push("share");
             SCREENSHOT_SHARE_DATA_TYPE = builder
                     .translation("visual_share.configuration.screenshot.share_data_type")
@@ -130,10 +165,9 @@ public class Config {
             SCREENSHOT_AUTO_CLOSE_SIDEBAR = builder
                     .translation("visual_share.configuration.screenshot.auto_close_sidebar")
                     .define("auto_close_sidebar", false);
-
             builder.pop();
-            builder.push("drawing_board");
 
+            builder.push("drawing_board");
             DRAWING_BOARD_WIDTH = builder
                     .translation("visual_share.configuration.drawing_board.width")
                     .defineInRange("width", 256, 32, 2048);
@@ -143,7 +177,6 @@ public class Config {
             DRAWING_BOARD_BACKGROUND_COLOR = builder
                     .translation("visual_share.configuration.drawing_board.background_color")
                     .defineInRange("background_color", 16777215, 0, 16777215);
-
             builder.pop();
         }
     }

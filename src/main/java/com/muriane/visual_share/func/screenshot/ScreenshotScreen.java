@@ -387,89 +387,93 @@ public class ScreenshotScreen extends Screen {
     }
 
     public void imageShare(){
-        Config.OverrideMode overrideMode = Config.SERVER.SCREENSHOT_SHARE_OVERRIDE_CLIENT_PARAM.get();
+        if (Config.SERVER.ENABLE_SCREENSHOT_SHARE.get()) {
+            Config.OverrideMode overrideMode = Config.SERVER.SCREENSHOT_SHARE_OVERRIDE_CLIENT_PARAM.get();
 
-        NativeImage image = this.imageHistory.get(this.step);
-        String textureId = com.muriane.visual_share.method.MScreenshot.getImageId(image);
+            NativeImage image = this.imageHistory.get(this.step);
+            String textureId = com.muriane.visual_share.method.MScreenshot.getImageId(image);
 
-        BufferedImage buffer = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
-        for (int y = 0; y < image.getHeight(); y++) {
-            for (int x = 0; x < image.getWidth(); x++) {
-                int argb = image.getPixel(x, y);
-                buffer.setRGB(x, y, argb);
+            BufferedImage buffer = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_INT_RGB);
+            for (int y = 0; y < image.getHeight(); y++) {
+                for (int x = 0; x < image.getWidth(); x++) {
+                    int argb = image.getPixel(x, y);
+                    buffer.setRGB(x, y, argb);
+                }
             }
+
+            if (Config.SERVER.SCREENSHOT_SHARE_MAX_SIZE.get() != -1 && (image.getWidth() > Config.SERVER.SCREENSHOT_SHARE_MAX_SIZE.get() || image.getHeight() > Config.SERVER.SCREENSHOT_SHARE_MAX_SIZE.get())) {
+                float widthScale = Config.SERVER.SCREENSHOT_SHARE_MAX_SIZE.get() * 1f / image.getWidth();
+                float heightScale = Config.SERVER.SCREENSHOT_SHARE_MAX_SIZE.get() * 1f / image.getHeight();
+                float scale = Math.min(widthScale, heightScale);
+                int width = (int) (image.getWidth() * scale);
+                int height = (int) (image.getHeight() * scale);
+
+                java.awt.Image scaledImage = buffer.getScaledInstance(width, height, overrideMode != Config.OverrideMode.NO ? Config.SERVER.SCREENSHOT_SHARE_INTERPOLATION_ALGORITHM.get().getAlgorithm() : Config.CLIENT.SCREENSHOT_SHARE_INTERPOLATION_ALGORITHM.get().getAlgorithm());
+                buffer = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+                Graphics2D graphics = buffer.createGraphics();
+                graphics.drawImage(scaledImage, 0, 0, null);
+                graphics.dispose();
+            }
+
+            BufferedImage finalBuffer = buffer;
+            Config.DataType type = overrideMode != Config.OverrideMode.NO ? Config.SERVER.SCREENSHOT_SHARE_DATA_TYPE.get() : Config.CLIENT.SCREENSHOT_SHARE_DATA_TYPE.get();
+            CompletableFuture.supplyAsync(() -> { // 计算线程
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                if (type.equals(Config.DataType.PNG)) {
+                    try {
+                        ImageIO.write(finalBuffer, type.getType(), outputStream);
+                        LOGGER.info("Share image {}: png", textureId);
+                    } catch (IOException e) {
+                        LOGGER.error("Error write to {}: {}", type, e.getMessage());
+                    }
+                } else if (type.equals(Config.DataType.AVIF)) {
+                    ImageWriter writer = ImageIO.getImageWritersByFormatName("avif").next();
+                    AvifWriteParam param = (AvifWriteParam) writer.getDefaultWriteParam();
+
+                    int quality, speed;
+                    boolean lossless;
+                    if (overrideMode == Config.OverrideMode.ALWAYS) {
+                        quality = Config.SERVER.SCREENSHOT_SHARE_AVIF_QUALITY.get();
+                        speed = Config.SERVER.SCREENSHOT_SHARE_AVIF_SPEED.get();
+                        lossless = Config.SERVER.SCREENSHOT_SHARE_AVIF_LOSSLESS.get();
+                    } else if (overrideMode == Config.OverrideMode.MAX) {
+                        quality = Math.min(Config.SERVER.SCREENSHOT_SHARE_AVIF_QUALITY.get(), Config.CLIENT.SCREENSHOT_SHARE_AVIF_QUALITY.get());
+                        speed = Math.min(Config.SERVER.SCREENSHOT_SHARE_AVIF_SPEED.get(), Config.CLIENT.SCREENSHOT_SHARE_AVIF_SPEED.get());
+                        lossless = Config.SERVER.SCREENSHOT_SHARE_AVIF_LOSSLESS.get() && Config.CLIENT.SCREENSHOT_SHARE_AVIF_LOSSLESS.get();
+                    } else if (overrideMode == Config.OverrideMode.MIN) {
+                        quality = Math.max(Config.SERVER.SCREENSHOT_SHARE_AVIF_QUALITY.get(), Config.CLIENT.SCREENSHOT_SHARE_AVIF_QUALITY.get());
+                        speed = Math.max(Config.SERVER.SCREENSHOT_SHARE_AVIF_SPEED.get(), Config.CLIENT.SCREENSHOT_SHARE_AVIF_SPEED.get());
+                        lossless = Config.SERVER.SCREENSHOT_SHARE_AVIF_LOSSLESS.get() || Config.CLIENT.SCREENSHOT_SHARE_AVIF_LOSSLESS.get();
+                    } else {
+                        quality = Config.CLIENT.SCREENSHOT_SHARE_AVIF_QUALITY.get();
+                        speed = Config.CLIENT.SCREENSHOT_SHARE_AVIF_SPEED.get();
+                        lossless = Config.CLIENT.SCREENSHOT_SHARE_AVIF_LOSSLESS.get();
+                    }
+
+                    param.setQuality(quality); // 0-100，默认 75
+                    param.setSpeed(speed); // 0-10，默认 6（越高越快）
+                    param.setLossless(lossless); // true 为无损编码
+
+                    try (ImageOutputStream ios = ImageIO.createImageOutputStream(outputStream)) {
+                        writer.setOutput(ios);
+                        writer.write(null, new IIOImage(finalBuffer, null, null), param);
+                    } catch (IOException e) {
+                        LOGGER.error("Error write to {}: {}", type, e.getMessage());
+                    }
+                    writer.dispose();
+                    LOGGER.info("Share image {}: avif quality:{} speed:{} lossless:{}", textureId, quality, speed, lossless);
+                }
+                return outputStream;
+            }).thenAccept(
+                    outputStream -> {
+                        ClientPacketDistributor.sendToServer(new ScreenshotPayload.ImageUploadRequestData(textureId, 0));
+                        ScreenshotPayload.ImageUploadRequestData.imageList.put(textureId, new Pair<>(outputStream.toByteArray(), type.getType()));
+                    }
+            );
+        }else{
+            this.tip = Component.translatable("tip.visual_share.screenshot.fail_share.not_enable");
+            this.reload();
         }
-
-        if (Config.SERVER.SCREENSHOT_SHARE_MAX_SIZE.get() != -1 && (image.getWidth() > Config.SERVER.SCREENSHOT_SHARE_MAX_SIZE.get() || image.getHeight() > Config.SERVER.SCREENSHOT_SHARE_MAX_SIZE.get())) {
-            float widthScale = Config.SERVER.SCREENSHOT_SHARE_MAX_SIZE.get()*1f / image.getWidth();
-            float heightScale = Config.SERVER.SCREENSHOT_SHARE_MAX_SIZE.get()*1f / image.getHeight();
-            float scale = Math.min(widthScale, heightScale);
-            int width = (int) (image.getWidth()*scale);
-            int height = (int) (image.getHeight()*scale);
-
-            java.awt.Image scaledImage = buffer.getScaledInstance(width, height, overrideMode != Config.OverrideMode.NO ? Config.SERVER.SCREENSHOT_SHARE_INTERPOLATION_ALGORITHM.get().getAlgorithm() : Config.CLIENT.SCREENSHOT_SHARE_INTERPOLATION_ALGORITHM.get().getAlgorithm());
-            buffer = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-            Graphics2D graphics = buffer.createGraphics();
-            graphics.drawImage(scaledImage, 0, 0, null);
-            graphics.dispose();
-        }
-
-        BufferedImage finalBuffer = buffer;
-        Config.DataType type = overrideMode != Config.OverrideMode.NO ? Config.SERVER.SCREENSHOT_SHARE_DATA_TYPE.get() : Config.CLIENT.SCREENSHOT_SHARE_DATA_TYPE.get();
-        CompletableFuture.supplyAsync(() -> { // 计算线程
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            if (type.equals(Config.DataType.PNG)) {
-                try{
-                    ImageIO.write(finalBuffer, type.getType(), outputStream);
-                    LOGGER.info("Share image {}: png", textureId);
-                } catch (IOException e) {
-                    LOGGER.error("Error write to {}: {}", type, e.getMessage());
-                }
-            }
-            else if (type.equals(Config.DataType.AVIF)){
-                ImageWriter writer = ImageIO.getImageWritersByFormatName("avif").next();
-                AvifWriteParam param = (AvifWriteParam) writer.getDefaultWriteParam();
-
-                int quality, speed;
-                boolean lossless;
-                if (overrideMode == Config.OverrideMode.ALWAYS){
-                    quality = Config.SERVER.SCREENSHOT_SHARE_AVIF_QUALITY.get();
-                    speed = Config.SERVER.SCREENSHOT_SHARE_AVIF_SPEED.get();
-                    lossless = Config.SERVER.SCREENSHOT_SHARE_AVIF_LOSSLESS.get();
-                }else if (overrideMode == Config.OverrideMode.MAX){
-                    quality = Math.min(Config.SERVER.SCREENSHOT_SHARE_AVIF_QUALITY.get(), Config.CLIENT.SCREENSHOT_SHARE_AVIF_QUALITY.get());
-                    speed = Math.min(Config.SERVER.SCREENSHOT_SHARE_AVIF_SPEED.get(), Config.CLIENT.SCREENSHOT_SHARE_AVIF_SPEED.get());
-                    lossless = Config.SERVER.SCREENSHOT_SHARE_AVIF_LOSSLESS.get() && Config.CLIENT.SCREENSHOT_SHARE_AVIF_LOSSLESS.get();
-                }else if (overrideMode == Config.OverrideMode.MIN){
-                    quality = Math.max(Config.SERVER.SCREENSHOT_SHARE_AVIF_QUALITY.get(), Config.CLIENT.SCREENSHOT_SHARE_AVIF_QUALITY.get());
-                    speed = Math.max(Config.SERVER.SCREENSHOT_SHARE_AVIF_SPEED.get(), Config.CLIENT.SCREENSHOT_SHARE_AVIF_SPEED.get());
-                    lossless = Config.SERVER.SCREENSHOT_SHARE_AVIF_LOSSLESS.get() || Config.CLIENT.SCREENSHOT_SHARE_AVIF_LOSSLESS.get();
-                }else{
-                    quality = Config.CLIENT.SCREENSHOT_SHARE_AVIF_QUALITY.get();
-                    speed = Config.CLIENT.SCREENSHOT_SHARE_AVIF_SPEED.get();
-                    lossless = Config.CLIENT.SCREENSHOT_SHARE_AVIF_LOSSLESS.get();
-                }
-
-                param.setQuality(quality); // 0-100，默认 75
-                param.setSpeed(speed); // 0-10，默认 6（越高越快）
-                param.setLossless(lossless); // true 为无损编码
-
-                try (ImageOutputStream ios = ImageIO.createImageOutputStream(outputStream)){
-                    writer.setOutput(ios);
-                    writer.write(null, new IIOImage(finalBuffer, null, null), param);
-                }catch (IOException e){
-                    LOGGER.error("Error write to {}: {}", type, e.getMessage());
-                }
-                writer.dispose();
-                LOGGER.info("Share image {}: avif quality:{} speed:{} lossless:{}", textureId, quality, speed, lossless);
-            }
-            return outputStream;
-        }).thenAccept(
-                outputStream -> {
-                    ClientPacketDistributor.sendToServer(new ScreenshotPayload.ImageUploadRequestData(textureId, 0));
-                    ScreenshotPayload.ImageUploadRequestData.imageList.put(textureId, new Pair<>(outputStream.toByteArray(), type.getType()));
-                }
-        );
     }
 
     public void setTip(Component tip){

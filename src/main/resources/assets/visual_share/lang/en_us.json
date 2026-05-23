@@ -8,9 +8,13 @@
   "tip.visual_share.screenshot.share": "The sharing information has been written to the paste board, please paste and send it in chat to use it",
   "tip.visual_share.screenshot.fail_share.cooldown": "Share is cooling, time remaining: %ss",
   "tip.visual_share.screenshot.fail_share.no_exist": "The sharing image don't exist",
+  "tip.visual_share.screenshot.fail_share.not_enable": "The server has not enabled image sharing",
   "tip.visual_share.screenshot.image.image": "Image",
   "tip.visual_share.screenshot.image.no_image": "The image does not exist",
   "tip.visual_share.screenshot.image.image_loading": "Image Loading",
+
+  "key.category.visual_share.misc": "Visual Share | Misc",
+  "key.visual_share.misc.item_show": "Item Show",
 
   "key.category.visual_share.screenshot": "Visual Share | Screenshot",
   "key.visual_share.screenshot.screenshot": "Screenshot",
@@ -52,6 +56,23 @@
   "visual_share.configuration.section.visual.share.server.toml": "Server Settings",
   "visual_share.configuration.section.visual.share.server.toml.title": "Visual Share | Server Settings",
 
+  "visual_share.configuration.item_show": "Item Show Settings",
+  "visual_share.configuration.item_show.button": "Item Show Settings",
+  "visual_share.configuration.item_show.tooltip": "Item Show Settings",
+
+  "visual_share.configuration.item_show.enable": "Enable",
+  "visual_share.configuration.item_show.enable.tooltip": "Enable item showing",
+  "visual_share.configuration.item_show.prefix": "Prefix",
+  "visual_share.configuration.item_show.prefix.tooltip": "Prefix marker for item showing\n§7If the prefix is \"[i\", suffix is \"]\"\n§7To show item in hand: [i]\n§7To show item in slot 8: [i8]",
+  "visual_share.configuration.item_show.subfix": "Suffix",
+  "visual_share.configuration.item_show.subfix.tooltip": "Suffix marker for item showing\n§7If the prefix is \"[i\", suffix is \"]\"\n§7To show item in hand: [i]\n§7To show item in slot 8: [i8]",
+  "visual_share.configuration.item_show.custom_empty_name": "Custom Empty Name",
+  "visual_share.configuration.item_show.custom_empty_name.tooltip": "When the show item don't exist, use this name\nWhen empty, use air's name",
+  "visual_share.configuration.item_show.custom_empty_description": "Custom Empty Description",
+  "visual_share.configuration.item_show.custom_empty_description.tooltip": "When the show item don't exist, use this description\nWhen empty, use air's description",
+  "visual_share.configuration.item_show.directly_send": "Directly Send",
+  "visual_share.configuration.item_show.directly_send.tooltip": "When press the item show key\nIf true, directly send the message\nIf false, write the information to the paste board",
+
   "visual_share.configuration.screenshot": "Screenshot Settings",
   "visual_share.configuration.screenshot.button": "Screenshot Settings",
   "visual_share.configuration.screenshot.tooltip": "Screenshot settings",
@@ -65,6 +86,8 @@
   "visual_share.configuration.share_param.button": "Share Param Settings",
   "visual_share.configuration.share_param.tooltip": "Share param settings, whether it takes effect or not is related to \"Override Client Param\" on the server",
 
+  "visual_share.configuration.screenshot.share.enable": "Enable",
+  "visual_share.configuration.screenshot.share.enable.tooltip": "Enable image sharing",
   "visual_share.configuration.screenshot.share.override_client_param": "Override Client Param",
   "visual_share.configuration.screenshot.share.override_client_param.tooltip": "Select the state in which the params are overridden\nWhen you don't want the image to be uploaded and uploaded too large, you can use this setting to indirectly restrict it\n§7NO: Never override\n§7MAX: If the client params is bigger\n§7MIN: If the client params is smaller\nALWAYS: Always override",
   "visual_share.configuration.screenshot.share_data_type": "Share Data Type",
