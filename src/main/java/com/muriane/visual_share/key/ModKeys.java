@@ -18,6 +18,20 @@ public class ModKeys {
             InputConstants.UNKNOWN.getValue(),
             MISC_KEY_CATEGORY
     );
+    public static KeyMapping MISC_INVENTORY_SHOW = new KeyMapping(
+            "key.visual_share.misc.inventory_show",
+            KeyConflictContext.UNIVERSAL,
+            InputConstants.Type.KEYSYM,
+            InputConstants.UNKNOWN.getValue(),
+            MISC_KEY_CATEGORY
+    );
+    public static KeyMapping MISC_ENDER_CHEST_SHOW = new KeyMapping(
+            "key.visual_share.misc.ender_chest_show",
+            KeyConflictContext.UNIVERSAL,
+            InputConstants.Type.KEYSYM,
+            InputConstants.UNKNOWN.getValue(),
+            MISC_KEY_CATEGORY
+    );
 
     public static KeyMapping.Category SCREENSHOT_KEY_CATEGORY = new KeyMapping.Category(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "screenshot"));
     public static KeyMapping SCREENSHOT_SCREENSHOT = new KeyMapping(
@@ -114,6 +128,8 @@ public class ModKeys {
         @SubscribeEvent
         public static void registerKey(RegisterKeyMappingsEvent event){
             event.register(MISC_ITEM_SHOW);
+            event.register(MISC_INVENTORY_SHOW);
+            event.register(MISC_ENDER_CHEST_SHOW);
 
             event.register(SCREENSHOT_SCREENSHOT);
             event.register(SCREENSHOT_SELECTION);

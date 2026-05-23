@@ -3,6 +3,7 @@
   "package": "com.muriane.visual_share.mixin",
   "compatibilityLevel": "JAVA_25",
   "mixins": [
+    "MultiPlayerGameModeMixin"
   ],
   "injectors": {
     "defaultRequire": 1
@@ -11,5 +12,6 @@
     "requireAnnotations": true
   },
   "client": [
+    "ChatScreenMixin"
   ]
 }

@@ -26,6 +26,10 @@ public class Config {
         public final ModConfigSpec.ConfigValue<String> ITEM_SHOW_SUBFIX;
         public final ModConfigSpec.ConfigValue<String> ITEM_SHOW_CUSTOM_EMPTY_NAME;
         public final ModConfigSpec.ConfigValue<String> ITEM_SHOW_CUSTOM_EMPTY_DESCRIPTION;
+        public final ModConfigSpec.BooleanValue ENABLE_INVENTORY_SHOW;
+        public final ModConfigSpec.ConfigValue<String> INVENTORY_SHOW_MARKER;
+        public final ModConfigSpec.BooleanValue ENABLE_ENDER_CHEST_SHOW;
+        public final ModConfigSpec.ConfigValue<String> ENDER_CHEST_SHOW_MARKER;
 
         public final ModConfigSpec.BooleanValue ENABLE_SCREENSHOT_SHARE;
         public final ModConfigSpec.EnumValue<OverrideMode> SCREENSHOT_SHARE_OVERRIDE_CLIENT_PARAM;
@@ -40,22 +44,44 @@ public class Config {
         public final ModConfigSpec.ConfigValue<String> SCREENSHOT_SHARE_IMAGE_SUBFIX;
 
         Server(ModConfigSpec.Builder builder){
+            builder.push("misc");
+
             builder.push("item_show");
             ENABLE_ITEM_SHOW = builder
-                    .translation("visual_share.configuration.item_show.enable")
+                    .translation("visual_share.configuration.misc.item_show.enable")
                     .define("enable", true);
             ITEM_SHOW_PREFIX = builder
-                    .translation("visual_share.configuration.item_show.prefix")
+                    .translation("visual_share.configuration.misc.item_show.prefix")
                     .define("prefix", "[i");
             ITEM_SHOW_SUBFIX = builder
-                    .translation("visual_share.configuration.item_show.subfix")
+                    .translation("visual_share.configuration.misc.item_show.subfix")
                     .define("subfix", "]");
             ITEM_SHOW_CUSTOM_EMPTY_NAME = builder
-                    .translation("visual_share.configuration.item_show.custom_empty_name")
+                    .translation("visual_share.configuration.misc.item_show.custom_empty_name")
                     .define("custom_empty_name", "");
             ITEM_SHOW_CUSTOM_EMPTY_DESCRIPTION = builder
-                    .translation("visual_share.configuration.item_show.custom_empty_description")
+                    .translation("visual_share.configuration.misc.item_show.custom_empty_description")
                     .define("custom_empty_description", "");
+            builder.pop();
+
+            builder.push("inventory_show");
+            ENABLE_INVENTORY_SHOW = builder
+                    .translation("visual_share.configuration.misc.inventory_show.enable")
+                    .define("enable", true);
+            INVENTORY_SHOW_MARKER = builder
+                    .translation("visual_share.configuration.misc.inventory_show.marker")
+                    .define("marker", "[inv]");
+            builder.pop();
+
+            builder.push("ender_chest_show");
+            ENABLE_ENDER_CHEST_SHOW = builder
+                    .translation("visual_share.configuration.misc.ender_chest_show.enable")
+                    .define("enable", true);
+            ENDER_CHEST_SHOW_MARKER = builder
+                    .translation("visual_share.configuration.misc.ender_chest_show.marker")
+                    .define("marker", "[ec]");
+            builder.pop();
+
             builder.pop();
 
             builder.push("screenshot");
@@ -124,9 +150,9 @@ public class Config {
         public final ModConfigSpec.IntValue DRAWING_BOARD_BACKGROUND_COLOR;
 
         Client(ModConfigSpec.Builder builder){
-            builder.push("item_show");
+            builder.push("misc");
             ITEM_SHOW_DIRECTLY_SEND = builder
-                    .translation("visual_share.configuration.item_show.directly_send")
+                    .translation("visual_share.configuration.misc.directly_send")
                     .define("directly_send", true);
             builder.pop();
 
