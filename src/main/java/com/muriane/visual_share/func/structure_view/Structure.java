@@ -5,7 +5,6 @@ import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
 import com.muriane.visual_share.Config;
 import com.muriane.visual_share.VisualShare;
-import com.muriane.visual_share.func.screenshot.ScreenshotPayload;
 import com.muriane.visual_share.key.ModKeys;
 import com.muriane.visual_share.method.MMethod;
 import net.minecraft.ChatFormatting;
