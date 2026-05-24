@@ -157,5 +157,18 @@
   "visual_share.configuration.drawing_board.height": "Height",
   "visual_share.configuration.drawing_board.height.tooltip": "The height of drawing board",
   "visual_share.configuration.drawing_board.background_color": "Background Color",
-  "visual_share.configuration.drawing_board.background_color.tooltip": "The background color of drawing board, is the integer form of the RGB value"
+  "visual_share.configuration.drawing_board.background_color.tooltip": "The background color of drawing board, is the integer form of the RGB value",
+
+  "visual_share.configuration.structure": "Structure Settings",
+  "visual_share.configuration.structure.button": "Structure Settings",
+  "visual_share.configuration.structure.tooltip": "Structure Settings\n§cUnfinished",
+
+  "visual_share.configuration.structure.share.enable": "Enable",
+  "visual_share.configuration.structure.share.enable.tooltip": "Enable structure sharing",
+  "visual_share.configuration.structure.share.cooldown": "Cooldown",
+  "visual_share.configuration.structure.share.cooldown.tooltip": "The cooldown of sharing structures",
+  "visual_share.configuration.structure.share.prefix": "Prefix",
+  "visual_share.configuration.structure.share.prefix.tooltip": "Prefix marker for identifying structure",
+  "visual_share.configuration.structure.share.subfix": "Subfix",
+  "visual_share.configuration.structure.share.subfix.tooltip": "Subfix marker for identifying structure"
 }

@@ -139,7 +139,7 @@ public class Config {
             builder.push("share");
             ENABLE_STRUCTURE_SHARE = builder
                     .translation("visual_share.configuration.structure.share.enable")
-                    .define("enable", true);
+                    .define("enable", false);
             STRUCTURE_SHARE_COOLDOWN = builder
                     .translation("visual_share.configuration.structure.share.cooldown")
                     .defineInRange("cooldown", 3, 0, 300);

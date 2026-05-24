@@ -135,7 +135,7 @@ public class Structure {
     public static void structureLoad(StructureTemplate structure){
         System.out.print(structure+"\n");
 
-        // 接下来要做的是，投影建筑，懒得做了
+        // 接下来要做的是，投影建筑，懒ing
     }
 
     /// 转换带标识符的信息为结构信息

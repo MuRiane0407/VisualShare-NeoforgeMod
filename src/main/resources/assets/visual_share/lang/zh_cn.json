@@ -157,5 +157,18 @@
   "visual_share.configuration.drawing_board.height": "高度",
   "visual_share.configuration.drawing_board.height.tooltip": "画板高度",
   "visual_share.configuration.drawing_board.background_color": "背景颜色",
-  "visual_share.configuration.drawing_board.background_color.tooltip": "画板背景颜色, 为rgb值的整数形式"
+  "visual_share.configuration.drawing_board.background_color.tooltip": "画板背景颜色, 为RGB值的整数形式",
+
+  "visual_share.configuration.structure": "结构设置",
+  "visual_share.configuration.structure.button": "结构设置",
+  "visual_share.configuration.structure.tooltip": "结构设置\n§c未完成",
+
+  "visual_share.configuration.structure.share.enable": "启用",
+  "visual_share.configuration.structure.share.enable.tooltip": "启用结构分享",
+  "visual_share.configuration.structure.share.cooldown": "冷却",
+  "visual_share.configuration.structure.share.cooldown.tooltip": "分享结构的冷却",
+  "visual_share.configuration.structure.share.prefix": "前缀",
+  "visual_share.configuration.structure.share.prefix.tooltip": "用于标识结构的前缀标记",
+  "visual_share.configuration.structure.share.subfix": "后缀",
+  "visual_share.configuration.structure.share.subfix.tooltip": "用于标识结构的后缀标记"
 }

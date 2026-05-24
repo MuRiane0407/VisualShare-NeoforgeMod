@@ -112,14 +112,14 @@ public class ModKeys {
             "key.visual_share.structure_view.selection",
             KeyConflictContext.GUI,
             InputConstants.Type.KEYSYM,
-            InputConstants.KEY_LBRACKET,
+            InputConstants.UNKNOWN.getValue(),
             STRUCTURE_VIEW_KEY_CATEGORY
     );
     public static KeyMapping STRUCTURE_VIEW_SHARE = new KeyMapping(
             "key.visual_share.structure_view.share",
             KeyConflictContext.GUI,
             InputConstants.Type.KEYSYM,
-            InputConstants.KEY_RBRACKET,
+            InputConstants.UNKNOWN.getValue(),
             STRUCTURE_VIEW_KEY_CATEGORY
     );
 
@@ -143,8 +143,8 @@ public class ModKeys {
 
             event.register(DRAWING_BOARD_DRAWING_BOARD);
 
-            event.register(STRUCTURE_VIEW_SELECTION);
-            event.register(STRUCTURE_VIEW_SHARE);
+//            event.register(STRUCTURE_VIEW_SELECTION);
+//            event.register(STRUCTURE_VIEW_SHARE);
         }
     }
 }
