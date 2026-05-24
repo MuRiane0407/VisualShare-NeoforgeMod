@@ -12,6 +12,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.function.Consumer;
 
+import static com.muriane.visual_share.method.MMethod.getTimeId;
+
 public class MScreenshot {
     /**
      * 截取整个屏幕
@@ -111,12 +113,5 @@ public class MScreenshot {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
         Date date = new Date(currentTimeMillis);
         return formatter.format(date);
-    }
-
-    public static <T> String getTimeId(T object){
-        long currentTimeMillis = System.currentTimeMillis();
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
-        Date date = new Date(currentTimeMillis);
-        return formatter.format(date) + "-" + object.hashCode();
     }
 }

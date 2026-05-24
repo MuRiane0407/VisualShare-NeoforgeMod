@@ -466,8 +466,8 @@ public class ScreenshotScreen extends Screen {
                 return outputStream;
             }).thenAccept(
                     outputStream -> {
-                        ClientPacketDistributor.sendToServer(new ScreenshotPayload.ImageUploadRequestData(textureId, 0));
                         ScreenshotPayload.ImageUploadRequestData.imageList.put(textureId, new Pair<>(outputStream.toByteArray(), type.getType()));
+                        ClientPacketDistributor.sendToServer(new ScreenshotPayload.ImageUploadRequestData(textureId, 0));
                     }
             );
         }else{

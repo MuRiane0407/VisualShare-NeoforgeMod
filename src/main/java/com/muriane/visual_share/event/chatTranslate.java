@@ -5,6 +5,7 @@ import com.muriane.visual_share.func.misc.EnderChestShow;
 import com.muriane.visual_share.func.misc.InventoryShow;
 import com.muriane.visual_share.func.misc.ItemShow;
 import com.muriane.visual_share.func.screenshot.Screenshot;
+import com.muriane.visual_share.func.structure_view.Structure;
 import net.minecraft.network.chat.MutableComponent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -17,6 +18,12 @@ public class chatTranslate {
     public static void onServerReceivedChat(ServerChatEvent event){
         MutableComponent newChat = (MutableComponent) event.getMessage();
 
+        if (Config.SERVER.ENABLE_SCREENSHOT_SHARE.get()){
+            newChat = Screenshot.tranInfoToImage(newChat);
+        }
+        if (Config.SERVER.ENABLE_STRUCTURE_SHARE.get()){
+            newChat = Structure.tranInfoToStructure(newChat);
+        }
         if (Config.SERVER.ENABLE_ITEM_SHOW.get()) {
             newChat = ItemShow.tranInfoToItemInHand(newChat, event.getPlayer());
             newChat = ItemShow.tranInfoToItemInSlot(newChat, event.getPlayer());
@@ -27,7 +34,6 @@ public class chatTranslate {
         if (Config.SERVER.ENABLE_ENDER_CHEST_SHOW.get()){
             newChat = EnderChestShow.tranInfoToEnderChest(newChat, event.getPlayer());
         }
-        newChat = Screenshot.tranInfoToImage(newChat);
 
         event.setMessage(newChat);
     }

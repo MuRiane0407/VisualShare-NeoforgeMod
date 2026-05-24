@@ -84,7 +84,8 @@ public class InventoryShow {
                         newChat.append(Component.translatable("chat.visual_share.inventory_show", player.getName()).withStyle(style -> style
                                 .withColor(ChatFormatting.GOLD)
                                 .withHoverEvent(new HoverEvent.ShowText(Component.literal("Click to open")))
-                                .withClickEvent(new ClickEvent.Custom(INVENTORY_SHOW,
+                                .withClickEvent(new ClickEvent.Custom(
+                                        INVENTORY_SHOW,
                                         Optional.of(tag)
                                 ))
                         ));

@@ -115,8 +115,8 @@ public class ModKeys {
             InputConstants.KEY_LBRACKET,
             STRUCTURE_VIEW_KEY_CATEGORY
     );
-    public static KeyMapping STRUCTURE_VIEW_PREVIEW = new KeyMapping(
-            "key.visual_share.structure_view.preview",
+    public static KeyMapping STRUCTURE_VIEW_SHARE = new KeyMapping(
+            "key.visual_share.structure_view.share",
             KeyConflictContext.GUI,
             InputConstants.Type.KEYSYM,
             InputConstants.KEY_RBRACKET,
@@ -144,7 +144,7 @@ public class ModKeys {
             event.register(DRAWING_BOARD_DRAWING_BOARD);
 
             event.register(STRUCTURE_VIEW_SELECTION);
-            event.register(STRUCTURE_VIEW_PREVIEW);
+            event.register(STRUCTURE_VIEW_SHARE);
         }
     }
 }

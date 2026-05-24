@@ -1,16 +1,24 @@
 package com.muriane.visual_share.func.structure_view;
 
+import com.mojang.blaze3d.platform.ClipboardManager;
+import com.mojang.blaze3d.platform.Window;
+import com.mojang.datafixers.util.Pair;
 import com.mojang.logging.LogUtils;
+import com.muriane.visual_share.Config;
 import com.muriane.visual_share.VisualShare;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtAccounter;
+import net.minecraft.nbt.NbtIo;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
 import net.neoforged.bus.api.SubscribeEvent;
@@ -25,18 +33,20 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import org.slf4j.Logger;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.muriane.visual_share.func.structure_view.StructureView.structureList;
+import static com.muriane.visual_share.func.structure_view.Structure.structureList;
 
-public class StructureViewPayload {
+public class StructurePayload {
     public record StructureUploadRequestData(String id, int cooldown) implements CustomPacketPayload {
         public static final Logger LOGGER = LogUtils.getLogger();
         public static final Type<StructureUploadRequestData> TYPE = new Type<>(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "structure_upload_request"));
-        public static final int COOLDOWN = 5;
+        public static Map<String, CompoundTag> structureList = new HashMap<>();
         public static final Map<UUID, Integer> uploadCooldown = new HashMap<>();
 
         public static final StreamCodec<ByteBuf, StructureUploadRequestData> STREAM_CODEC = StreamCodec.composite(
@@ -77,23 +87,35 @@ public class StructureViewPayload {
                     int cooldown = uploadCooldown.getOrDefault(context.player().getUUID(), 0);
                     LOGGER.info("Player {} request upload {}: Cooldown {}s", context.player().getDisplayName().getString(), data.id, cooldown);
 
-                    if (cooldown == 0) uploadCooldown.put(context.player().getUUID(), COOLDOWN * 20);
+                    if (cooldown == 0) uploadCooldown.put(context.player().getUUID(), Config.SERVER.SCREENSHOT_SHARE_COOLDOWN.getAsInt() * 20);
                     PacketDistributor.sendToPlayer((ServerPlayer) context.player(), new StructureUploadRequestData(data.id, cooldown));
                 }
             }
 
             public static class ClientPayloadHandler {
                 public static void handleDataOnMain(final StructureUploadRequestData data, final IPayloadContext context) {
+                    String prefix = Config.SERVER.STRUCTURE_SHARE_PREFIX.get();
+                    String subfix = Config.SERVER.STRUCTURE_SHARE_SUBFIX.get();
+                    Window window = Minecraft.getInstance().getWindow();
+
+                    CompoundTag structureData = structureList.getOrDefault(data.id, null);
+                    structureList.remove(data.id);
+
+                    Player player = context.player();
                     if (data.cooldown <= 0) {
-                        StructureTemplate structure = structureList.getOrDefault(data.id, null);
-                        if (structure != null){
-                            CompoundTag tag = structure.save(new CompoundTag());
-                            ClientPacketDistributor.sendToServer(new StructureUploadData(data.id, tag));
+                        if (structureData != null){
+                            ClientPacketDistributor.sendToServer(new StructureData(data.id, structureData));
+
+                            ClipboardManager clipboard = new ClipboardManager();
+                            clipboard.setClipboard(window, prefix + data.id + subfix);
+
+                            player.sendOverlayMessage(Component.literal("Write into paste board"));
                             LOGGER.info("{} upload are allowed", data.id);
                         }else{
-                            LOGGER.warn("The structure don't exist: {}", data.id);
+                            LOGGER.warn("The structureData don't exist: {}", data.id);
                         }
                     }else{
+                        player.sendOverlayMessage(Component.literal("Cooldown"));
                         LOGGER.info("{} upload failed: Cooldown {}s", data.id, data.cooldown/20f);
                     }
                 }
@@ -113,16 +135,16 @@ public class StructureViewPayload {
         }
     }
 
-    public record StructureUploadData(String id, CompoundTag tag) implements CustomPacketPayload {
+    public record StructureData(String id, CompoundTag tag) implements CustomPacketPayload {
         public static final Logger LOGGER = LogUtils.getLogger();
-        public static final Type<StructureUploadData> TYPE = new Type<>(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "structure_upload"));
+        public static final Type<StructureData> TYPE = new Type<>(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "structure"));
 
-        public static final StreamCodec<ByteBuf, StructureUploadData> STREAM_CODEC = StreamCodec.composite(
+        public static final StreamCodec<ByteBuf, StructureData> STREAM_CODEC = StreamCodec.composite(
                 ByteBufCodecs.STRING_UTF8,
-                StructureUploadData::id,
+                StructureData::id,
                 ByteBufCodecs.COMPOUND_TAG,
-                StructureUploadData::tag,
-                StructureUploadData::new
+                StructureData::tag,
+                StructureData::new
         );
 
         @Override
@@ -136,22 +158,22 @@ public class StructureViewPayload {
             public static void register(RegisterPayloadHandlersEvent event){
                 final PayloadRegistrar registrar = event.registrar("1");
                 registrar.playBidirectional(
-                        StructureUploadData.TYPE,
-                        StructureUploadData.STREAM_CODEC,
-                        StructureUploadData.DataHolder.ServerPayloadHandler::handleDataOnMain
+                        StructureData.TYPE,
+                        StructureData.STREAM_CODEC,
+                        StructureData.DataHolder.ServerPayloadHandler::handleDataOnMain
                 );
             }
 
             @SubscribeEvent
             public static void register(RegisterClientPayloadHandlersEvent event){
                 event.register(
-                        StructureUploadData.TYPE,
-                        StructureUploadData.DataHolder.ClientPayloadHandler::handleDataOnMain
+                        StructureData.TYPE,
+                        StructureData.DataHolder.ClientPayloadHandler::handleDataOnMain
                 );
             }
 
             public static class ServerPayloadHandler {
-                public static void handleDataOnMain(final StructureUploadData data, final IPayloadContext context) {
+                public static void handleDataOnMain(final StructureData data, final IPayloadContext context) {
                     File root = Minecraft.getInstance().gameDirectory;
                     File modDir = new File(root, VisualShare.MOD_ID);
                     modDir.mkdir();
@@ -169,13 +191,11 @@ public class StructureViewPayload {
                     } catch (IOException e) {
                         LOGGER.error("Server save structure error: {}", e.getMessage());
                     }
-
-                    structureList.put(data.id, structure);
                 }
             }
 
             public static class ClientPayloadHandler {
-                public static void handleDataOnMain(final StructureUploadData data, final IPayloadContext context) {
+                public static void handleDataOnMain(final StructureData data, final IPayloadContext context) {
                     File root = Minecraft.getInstance().gameDirectory;
                     File modDir = new File(root, VisualShare.MOD_ID);
                     modDir.mkdir();
@@ -194,7 +214,71 @@ public class StructureViewPayload {
                         LOGGER.error("Client save structure error: {}", e.getMessage());
                     }
 
-                    structureList.put(data.id, structure);
+                    structureList.put(data.id, new Pair<>(true, structure));
+                }
+            }
+        }
+    }
+
+    public record StructureLoadRequestData(String id) implements CustomPacketPayload{
+        public static final Logger LOGGER = LogUtils.getLogger();
+        public static final Type<StructureLoadRequestData> TYPE = new Type<>(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "structure_load_request"));
+
+        public static final StreamCodec<ByteBuf, StructureLoadRequestData> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.STRING_UTF8,
+                StructureLoadRequestData::id,
+                StructureLoadRequestData::new
+        );
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+
+        @EventBusSubscriber
+        public static class DataHolder{
+            @SubscribeEvent
+            public static void register(RegisterPayloadHandlersEvent event){
+                final PayloadRegistrar registrar = event.registrar("1");
+                registrar.playBidirectional(
+                        StructureLoadRequestData.TYPE,
+                        StructureLoadRequestData.STREAM_CODEC,
+                        StructureLoadRequestData.DataHolder.ServerPayloadHandler::handleDataOnMain
+                );
+            }
+
+            @SubscribeEvent
+            public static void register(RegisterClientPayloadHandlersEvent event){
+                event.register(
+                        StructureLoadRequestData.TYPE,
+                        StructureLoadRequestData.DataHolder.ClientPayloadHandler::handleDataOnMain
+                );
+            }
+
+            public static class ServerPayloadHandler {
+                public static void handleDataOnMain(final StructureLoadRequestData data, final IPayloadContext context) {
+                    File structureData = Structure.findServerStructureData(data.id);
+                    if (structureData != null){
+                        try {
+                            CompoundTag tag = NbtIo.readCompressed(structureData.toPath(), NbtAccounter.defaultQuota());
+
+                            PacketDistributor.sendToPlayer((ServerPlayer) context.player(), new StructureData(data.id, tag));
+                            LOGGER.info("Successful find {}", data.id);
+                        }catch (IOException e){
+                            PacketDistributor.sendToPlayer((ServerPlayer) context.player(), new StructureLoadRequestData(data.id));
+                            LOGGER.error("Error read server file: {}", e.getMessage());
+                        }
+                    }else{
+                        PacketDistributor.sendToPlayer((ServerPlayer) context.player(), new StructureLoadRequestData(data.id));
+                        LOGGER.warn("{} don't exist", data.id);
+                    }
+                }
+            }
+
+            public static class ClientPayloadHandler {
+                public static void handleDataOnMain(final StructureLoadRequestData data, final IPayloadContext context) {
+                    structureList.put(data.id, new Pair<>(true, null));
+                    context.player().sendOverlayMessage(Component.literal("No that structure"));
                 }
             }
         }

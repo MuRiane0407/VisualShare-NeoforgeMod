@@ -43,6 +43,11 @@ public class Config {
         public final ModConfigSpec.ConfigValue<String> SCREENSHOT_SHARE_IMAGE_PREFIX;
         public final ModConfigSpec.ConfigValue<String> SCREENSHOT_SHARE_IMAGE_SUBFIX;
 
+        public final ModConfigSpec.BooleanValue ENABLE_STRUCTURE_SHARE;
+        public final ModConfigSpec.IntValue STRUCTURE_SHARE_COOLDOWN;
+        public final ModConfigSpec.ConfigValue<String> STRUCTURE_SHARE_PREFIX;
+        public final ModConfigSpec.ConfigValue<String> STRUCTURE_SHARE_SUBFIX;
+
         Server(ModConfigSpec.Builder builder){
             builder.push("misc");
 
@@ -123,10 +128,27 @@ public class Config {
                     .defineInRange("cooldown", 3, 0, 300);
             SCREENSHOT_SHARE_IMAGE_PREFIX = builder
                     .translation("visual_share.configuration.screenshot.share.image_prefix")
-                    .define("image_prefix", "<qs_fs>");
+                    .define("image_prefix", "<qs_sc>");
             SCREENSHOT_SHARE_IMAGE_SUBFIX = builder
                     .translation("visual_share.configuration.screenshot.share.image_subfix")
-                    .define("image_subfix", "</qs_fs>");
+                    .define("image_subfix", "</qs_sc>");
+            builder.pop();
+            builder.pop();
+
+            builder.push("structure");
+            builder.push("share");
+            ENABLE_STRUCTURE_SHARE = builder
+                    .translation("visual_share.configuration.structure.share.enable")
+                    .define("enable", true);
+            STRUCTURE_SHARE_COOLDOWN = builder
+                    .translation("visual_share.configuration.structure.share.cooldown")
+                    .defineInRange("cooldown", 3, 0, 300);
+            STRUCTURE_SHARE_PREFIX = builder
+                    .translation("visual_share.configuration.structure.share.prefix")
+                    .define("prefix", "<qs_st>");
+            STRUCTURE_SHARE_SUBFIX = builder
+                    .translation("visual_share.configuration.structure.share.subfix")
+                    .define("subfix", "</qs_st>");
             builder.pop();
             builder.pop();
         }

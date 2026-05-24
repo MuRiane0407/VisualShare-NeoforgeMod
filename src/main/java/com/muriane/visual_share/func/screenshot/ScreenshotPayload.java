@@ -37,6 +37,101 @@ import java.util.UUID;
 import static com.muriane.visual_share.func.screenshot.Screenshot.ScreenshotData;
 
 public class ScreenshotPayload {
+    public record ImageUploadRequestData(String id, Integer cooldown) implements CustomPacketPayload {
+        public static final Logger LOGGER = LogUtils.getLogger();
+        public static final Type<ImageUploadRequestData> TYPE = new Type<>(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "image_upload"));
+        public static Map<String, Pair<byte[], String>> imageList = new HashMap<>();
+        public static Map<UUID, Integer> imageShareCooldown = new HashMap<>();
+
+        public static final StreamCodec<ByteBuf, ImageUploadRequestData> STREAM_CODEC = StreamCodec.composite(
+                ByteBufCodecs.STRING_UTF8,
+                ImageUploadRequestData::id,
+                ByteBufCodecs.INT,
+                ImageUploadRequestData::cooldown,
+                ImageUploadRequestData::new
+        );
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+
+        @EventBusSubscriber
+        public static class DataHolder{
+            @SubscribeEvent
+            public static void register(RegisterPayloadHandlersEvent event){
+                final PayloadRegistrar registrar = event.registrar("1");
+                registrar.playBidirectional(
+                        ImageUploadRequestData.TYPE,
+                        ImageUploadRequestData.STREAM_CODEC,
+                        ImageUploadRequestData.DataHolder.ServerPayloadHandler::handleDataOnMain
+                );
+            }
+
+            @SubscribeEvent
+            public static void register(RegisterClientPayloadHandlersEvent event){
+                event.register(
+                        ImageUploadRequestData.TYPE,
+                        ImageUploadRequestData.DataHolder.ClientPayloadHandler::handleDataOnMain
+                );
+            }
+
+            public static class ServerPayloadHandler {
+                public static void handleDataOnMain(final ImageUploadRequestData data, final IPayloadContext context) {
+                    UUID playerId = context.player().getUUID();
+                    int cooldown = imageShareCooldown.getOrDefault(context.player().getUUID(), 0);
+                    if (cooldown <= 0){
+                        imageShareCooldown.put(playerId, Config.SERVER.SCREENSHOT_SHARE_COOLDOWN.getAsInt()*20);
+                        PacketDistributor.sendToPlayer((ServerPlayer) context.player(), new ImageUploadRequestData(data.id, cooldown));
+                        LOGGER.info("{} request upload image success", context.player().getDisplayName().getString());
+                    }else{
+                        PacketDistributor.sendToPlayer((ServerPlayer) context.player(), new ImageUploadRequestData(data.id, cooldown));
+                        LOGGER.info("{} request upload image fail: Cooldown", context.player().getDisplayName().getString());
+                    }
+                }
+            }
+
+            public static class ClientPayloadHandler {
+                public static void handleDataOnMain(final ImageUploadRequestData data, final IPayloadContext context) {
+                    String prefix = Config.SERVER.SCREENSHOT_SHARE_IMAGE_PREFIX.get();
+                    String subfix = Config.SERVER.SCREENSHOT_SHARE_IMAGE_SUBFIX.get();
+                    ScreenshotScreen screen = Screenshot.imageViewScreen;
+
+                    Pair<byte[], String> imageData = imageList.getOrDefault(data.id, null);
+                    imageList.remove(data.id);
+
+                    if (data.cooldown <= 0){
+                        if (imageData != null){
+                            ClientPacketDistributor.sendToServer(new ImageData(imageData.getFirst(), data.id, imageData.getSecond()));
+
+                            ClipboardManager clipboard = new ClipboardManager();
+                            clipboard.setClipboard(screen.getMinecraft().getWindow(), prefix + data.id + subfix);
+
+                            screen.setTip(Component.translatable("tip.visual_share.screenshot.share"));
+                        }else{
+                            screen.setTip(Component.translatable("tip.visual_share.screenshot.fail_share.no_exist"));
+                        }
+                    }else{
+                        screen.setTip(Component.translatable("tip.visual_share.screenshot.fail_share.cooldown", Component.literal(String.format("%.1f", data.cooldown/20f))));
+                    }
+                    screen.reload();
+                }
+            }
+
+            @SubscribeEvent
+            public static void onTick(ClientTickEvent.Pre event){
+                for (UUID uuid : imageShareCooldown.keySet()){
+                    int cooldown = imageShareCooldown.get(uuid)-1;
+                    if (cooldown <= 0) {
+                        imageShareCooldown.remove(uuid);
+                    }else{
+                        imageShareCooldown.put(uuid, cooldown);
+                    }
+                }
+            }
+        }
+    }
+
     public record ImageData(byte[] data, String imageId, String imageType) implements CustomPacketPayload {
         public static final Logger LOGGER = LogUtils.getLogger();
         public static final Type<ImageData> TYPE = new Type<>(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "image"));
@@ -144,101 +239,6 @@ public class ScreenshotPayload {
         }
     }
 
-    public record ImageUploadRequestData(String id, Integer cooldown) implements CustomPacketPayload {
-        public static final Logger LOGGER = LogUtils.getLogger();
-        public static final Type<ImageUploadRequestData> TYPE = new Type<>(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "image_upload"));
-        public static Map<String, Pair<byte[], String>> imageList = new HashMap<>();
-        public static Map<UUID, Integer> imageShareCooldown = new HashMap<>();
-
-        public static final StreamCodec<ByteBuf, ImageUploadRequestData> STREAM_CODEC = StreamCodec.composite(
-                ByteBufCodecs.STRING_UTF8,
-                ImageUploadRequestData::id,
-                ByteBufCodecs.INT,
-                ImageUploadRequestData::cooldown,
-                ImageUploadRequestData::new
-        );
-
-        @Override
-        public Type<? extends CustomPacketPayload> type() {
-            return TYPE;
-        }
-
-        @EventBusSubscriber
-        public static class DataHolder{
-            @SubscribeEvent
-            public static void register(RegisterPayloadHandlersEvent event){
-                final PayloadRegistrar registrar = event.registrar("1");
-                registrar.playBidirectional(
-                        ImageUploadRequestData.TYPE,
-                        ImageUploadRequestData.STREAM_CODEC,
-                        ImageUploadRequestData.DataHolder.ServerPayloadHandler::handleDataOnMain
-                );
-            }
-
-            @SubscribeEvent
-            public static void register(RegisterClientPayloadHandlersEvent event){
-                event.register(
-                        ImageUploadRequestData.TYPE,
-                        ImageUploadRequestData.DataHolder.ClientPayloadHandler::handleDataOnMain
-                );
-            }
-
-            public static class ServerPayloadHandler {
-                public static void handleDataOnMain(final ImageUploadRequestData data, final IPayloadContext context) {
-                    UUID playerId = context.player().getUUID();
-                    int cooldown = imageShareCooldown.getOrDefault(context.player().getUUID(), 0);
-                    if (cooldown <= 0){
-                        imageShareCooldown.put(playerId, Config.SERVER.SCREENSHOT_SHARE_COOLDOWN.getAsInt()*20);
-                        PacketDistributor.sendToPlayer((ServerPlayer) context.player(), new ImageUploadRequestData(data.id, cooldown));
-                        LOGGER.info("{} request upload image success", context.player().getDisplayName().getString());
-                    }else{
-                        PacketDistributor.sendToPlayer((ServerPlayer) context.player(), new ImageUploadRequestData(data.id, cooldown));
-                        LOGGER.info("{} request upload image fail: Cooldown", context.player().getDisplayName().getString());
-                    }
-                }
-            }
-
-            public static class ClientPayloadHandler {
-                public static void handleDataOnMain(final ImageUploadRequestData data, final IPayloadContext context) {
-                    String prefix = Config.SERVER.SCREENSHOT_SHARE_IMAGE_PREFIX.get();
-                    String subfix = Config.SERVER.SCREENSHOT_SHARE_IMAGE_SUBFIX.get();
-                    ScreenshotScreen screen = Screenshot.imageViewScreen;
-
-                    Pair<byte[], String> imageData = imageList.getOrDefault(data.id, null);
-                    imageList.remove(data.id);
-
-                    if (data.cooldown <= 0){
-                        if (imageData != null){
-                            ClientPacketDistributor.sendToServer(new ImageData(imageData.getFirst(), data.id, imageData.getSecond()));
-
-                            ClipboardManager clipboard = new ClipboardManager();
-                            clipboard.setClipboard(screen.getMinecraft().getWindow(), prefix + data.id + subfix);
-                        }else{
-                            screen.setTip(Component.translatable("tip.visual_share.screenshot.fail_share.no_exist"));
-                        }
-
-                        screen.setTip(Component.translatable("tip.visual_share.screenshot.share"));
-                    }else{
-                        screen.setTip(Component.translatable("tip.visual_share.screenshot.fail_share.cooldown", Component.literal(String.format("%.1f", data.cooldown/20f))));
-                    }
-                    screen.reload();
-                }
-            }
-
-            @SubscribeEvent
-            public static void onTick(ClientTickEvent.Pre event){
-                for (UUID uuid : imageShareCooldown.keySet()){
-                    int cooldown = imageShareCooldown.get(uuid)-1;
-                    if (cooldown <= 0) {
-                        imageShareCooldown.remove(uuid);
-                    }else{
-                        imageShareCooldown.put(uuid, cooldown);
-                    }
-                }
-            }
-        }
-    }
-
     public record ImageLoadRequestData(String id) implements CustomPacketPayload{
         public static final Logger LOGGER = LogUtils.getLogger();
         public static final Type<ImageLoadRequestData> TYPE = new Type<>(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "image_load"));
@@ -278,15 +278,16 @@ public class ScreenshotPayload {
                 public static void handleDataOnMain(final ImageLoadRequestData data, final IPayloadContext context) {
                     File imageData = Screenshot.findServerScreenshotData(data.id);
                     if (imageData != null){
-                        byte[] bytes = null;
+                        byte[] bytes;
                         try (FileInputStream fis = new FileInputStream(imageData)) {
                             bytes = fis.readAllBytes();
+
+                            PacketDistributor.sendToPlayer((ServerPlayer) context.player(), new ImageData(bytes, data.id, imageData.getName().substring(imageData.getName().lastIndexOf(".")+1)));
+                            LOGGER.info("Successful find {}", data.id);
                         }catch (IOException e){
+                            PacketDistributor.sendToPlayer((ServerPlayer) context.player(), new ImageLoadRequestData(data.id));
                             LOGGER.error("Error read server file: {}", e.getMessage());
                         }
-
-                        PacketDistributor.sendToPlayer((ServerPlayer) context.player(), new ImageData(bytes, data.id, imageData.getName().substring(imageData.getName().lastIndexOf(".")+1)));
-                        LOGGER.info("Successful find {}", data.id);
                     }else{
                         PacketDistributor.sendToPlayer((ServerPlayer) context.player(), new ImageLoadRequestData(data.id));
                         LOGGER.warn("{} don't exist", data.id);

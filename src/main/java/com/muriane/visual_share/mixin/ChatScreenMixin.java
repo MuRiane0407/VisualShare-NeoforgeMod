@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import com.muriane.visual_share.func.misc.EnderChestShow;
 import com.muriane.visual_share.func.misc.InventoryShow;
 import com.muriane.visual_share.func.misc.ItemShow;
+import com.muriane.visual_share.func.structure_view.Structure;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.Tag;
@@ -49,6 +50,13 @@ public abstract class ChatScreenMixin {
                     EnderChestShow.onClickOpenContainer((CompoundTag) payload.get());
                 }else{
                     visual_share$LOGGER.warn("Empty tag in ender chest show");
+                }
+                cir.setReturnValue(true);
+            }else if (id.equals(Structure.STRUCTURE)){
+                if (payload.isPresent()){
+                    Structure.onClickStructureInfo((CompoundTag) payload.get());
+                }else{
+                    visual_share$LOGGER.warn("Empty tag in structure share");
                 }
                 cir.setReturnValue(true);
             }

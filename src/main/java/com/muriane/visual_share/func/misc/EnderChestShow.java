@@ -84,7 +84,8 @@ public class EnderChestShow {
                         newChat.append(Component.translatable("chat.visual_share.ender_chest_show", player.getName()).withStyle(style -> style
                                 .withColor(ChatFormatting.LIGHT_PURPLE)
                                 .withHoverEvent(new HoverEvent.ShowText(Component.literal("Click to open")))
-                                .withClickEvent(new ClickEvent.Custom(ENDER_CHEST_SHOW,
+                                .withClickEvent(new ClickEvent.Custom(
+                                        ENDER_CHEST_SHOW,
                                         Optional.of(tag)
                                 ))
                         ));
