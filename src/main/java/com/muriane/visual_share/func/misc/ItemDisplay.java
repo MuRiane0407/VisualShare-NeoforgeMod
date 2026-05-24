@@ -37,9 +37,9 @@ import java.util.UUID;
 
 
 @EventBusSubscriber
-public class ItemShow {
+public class ItemDisplay {
     public static final Logger LOGGER = LogUtils.getLogger();
-    public static final Identifier ITEM_SHOW = Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "item_show");
+    public static final Identifier ITEM_DISPLAY = Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "item_display");
     public static int containerId = 32506202; // 用id确定是否不能交互，需要找一个更好的标记方法防止冲突
     public static ItemStack stack;
 
@@ -47,16 +47,16 @@ public class ItemShow {
     public static void onKey(InputEvent.Key event){
         Minecraft mc = Minecraft.getInstance();
         if (event.getAction() == InputConstants.PRESS) {
-            if (event.getKey() == ModKeys.MISC_ITEM_SHOW.getKey().getValue()) {
-                if (Config.SERVER.ENABLE_ITEM_SHOW.get()){
+            if (event.getKey() == ModKeys.MISC_ITEM_DISPLAY.getKey().getValue()) {
+                if (Config.SERVER.ENABLE_ITEM_DISPLAY.get()){
                     if (mc.level != null && mc.player != null) { // 用level来判断玩家是否已经在某个服务器中
                         if (mc.screen instanceof AbstractContainerScreen<?> inventoryScreen) {
                             Slot slot = inventoryScreen.getSlotUnderMouse();
                             if (slot != null) {
-                                String prefix = Config.SERVER.ITEM_SHOW_PREFIX.get();
-                                String subfix = Config.SERVER.ITEM_SHOW_SUBFIX.get();
+                                String prefix = Config.SERVER.ITEM_DISPLAY_PREFIX.get();
+                                String subfix = Config.SERVER.ITEM_DISPLAY_SUBFIX.get();
                                 String info = prefix + slot.getSlotIndex() + subfix;
-                                if (Config.CLIENT.ITEM_SHOW_DIRECTLY_SEND.get()) {
+                                if (Config.CLIENT.ITEM_DISPLAY_DIRECTLY_SEND.get()) {
                                     mc.player.connection.sendChat(StringUtil.trimChatMessage(StringUtils.normalizeSpace((info).trim())));
                                 } else {
                                     ClipboardManager clipboard = new ClipboardManager();
@@ -65,10 +65,10 @@ public class ItemShow {
                                 }
                             }
                         } else if (mc.screen == null) {
-                            String prefix = Config.SERVER.ITEM_SHOW_PREFIX.get();
-                            String subfix = Config.SERVER.ITEM_SHOW_SUBFIX.get();
+                            String prefix = Config.SERVER.ITEM_DISPLAY_PREFIX.get();
+                            String subfix = Config.SERVER.ITEM_DISPLAY_SUBFIX.get();
                             String info = prefix + subfix;
-                            if (Config.CLIENT.ITEM_SHOW_DIRECTLY_SEND.get()) {
+                            if (Config.CLIENT.ITEM_DISPLAY_DIRECTLY_SEND.get()) {
                                 mc.player.connection.sendChat(StringUtil.trimChatMessage(StringUtils.normalizeSpace((info).trim())));
                             } else {
                                 ClipboardManager clipboard = new ClipboardManager();
@@ -79,7 +79,7 @@ public class ItemShow {
                     }
                 }else{
                     if (mc.player != null){
-                        mc.player.sendOverlayMessage(Component.translatable("overlay.visual_share.misc.item_show.not_enable"));
+                        mc.player.sendOverlayMessage(Component.translatable("overlay.visual_share.misc.item_display.not_enable"));
                     }
                 }
             }
@@ -109,7 +109,7 @@ public class ItemShow {
                             new ContainerScreen(
                                     menu,
                                     player.getInventory(),
-                                    Component.translatable("container.visual_share.misc.item_show", player1.getName())
+                                    Component.translatable("container.visual_share.misc.item_display", player1.getName())
                             )
                     );
                 }
@@ -119,8 +119,8 @@ public class ItemShow {
 
     /// 转换带标识符的信息为物品信息
     public static MutableComponent tranInfoToItemInHand(Component chat, Player player){
-        String prefix = Config.SERVER.ITEM_SHOW_PREFIX.get();
-        String suffix = Config.SERVER.ITEM_SHOW_SUBFIX.get();
+        String prefix = Config.SERVER.ITEM_DISPLAY_PREFIX.get();
+        String suffix = Config.SERVER.ITEM_DISPLAY_SUBFIX.get();
 
         if (!prefix.isEmpty() && !suffix.isEmpty()){
             String marker = prefix+suffix;
@@ -151,13 +151,13 @@ public class ItemShow {
                             newChat.append(Component.literal("[" + stack.getItemName().getString() + "]").withStyle(style -> style
                                     .withColor(ChatFormatting.AQUA)
                                     .withHoverEvent(new HoverEvent.ShowItem(template))
-                                    .withClickEvent(new ClickEvent.Custom(ITEM_SHOW,
+                                    .withClickEvent(new ClickEvent.Custom(ITEM_DISPLAY,
                                             Optional.of(tag)
                                     ))
                             ));
                         } else {
-                            String empty = Config.SERVER.ITEM_SHOW_CUSTOM_EMPTY_NAME.get().isEmpty() ? Blocks.AIR.getName().getString() : Config.SERVER.ITEM_SHOW_CUSTOM_EMPTY_NAME.get();
-                            String emptyDescription = Config.SERVER.ITEM_SHOW_CUSTOM_EMPTY_DESCRIPTION.get().isEmpty() ? Blocks.AIR.getName().getString() : Config.SERVER.ITEM_SHOW_CUSTOM_EMPTY_DESCRIPTION.get();
+                            String empty = Config.SERVER.ITEM_DISPLAY_CUSTOM_EMPTY_NAME.get().isEmpty() ? Blocks.AIR.getName().getString() : Config.SERVER.ITEM_DISPLAY_CUSTOM_EMPTY_NAME.get();
+                            String emptyDescription = Config.SERVER.ITEM_DISPLAY_CUSTOM_EMPTY_DESCRIPTION.get().isEmpty() ? Blocks.AIR.getName().getString() : Config.SERVER.ITEM_DISPLAY_CUSTOM_EMPTY_DESCRIPTION.get();
                             newChat.append(Component.literal("[" + empty + "]").withStyle(style -> style
                                     .withColor(ChatFormatting.AQUA)
                                     .withHoverEvent(new HoverEvent.ShowText(Component.literal(emptyDescription)))
@@ -175,14 +175,14 @@ public class ItemShow {
             }
             return newChat;
         }else{
-            LOGGER.warn("Item show prefix or suffix is empty");
+            LOGGER.warn("Item display prefix or suffix is empty");
             return (MutableComponent) chat;
         }
     }
 
     public static MutableComponent tranInfoToItemInSlot(Component chat, Player player){
-        String prefix = Config.SERVER.ITEM_SHOW_PREFIX.get();
-        String suffix = Config.SERVER.ITEM_SHOW_SUBFIX.get();
+        String prefix = Config.SERVER.ITEM_DISPLAY_PREFIX.get();
+        String suffix = Config.SERVER.ITEM_DISPLAY_SUBFIX.get();
 
         if (!prefix.isEmpty() && !suffix.isEmpty()){
             MutableComponent newChat = MutableComponent.create(Component.empty().getContents());
@@ -221,13 +221,13 @@ public class ItemShow {
                                 newChat.append(Component.literal("[" + stack.getItemName().getString() + "]").withStyle(style -> style
                                         .withColor(ChatFormatting.AQUA)
                                         .withHoverEvent(new HoverEvent.ShowItem(template))
-                                        .withClickEvent(new ClickEvent.Custom(ITEM_SHOW,
+                                        .withClickEvent(new ClickEvent.Custom(ITEM_DISPLAY,
                                                 Optional.of(tag)
                                         ))
                                 ));
                             } else {
-                                String empty = Config.SERVER.ITEM_SHOW_CUSTOM_EMPTY_NAME.get().isEmpty() ? Blocks.AIR.getName().getString() : Config.SERVER.ITEM_SHOW_CUSTOM_EMPTY_NAME.get();
-                                String emptyDescription = Config.SERVER.ITEM_SHOW_CUSTOM_EMPTY_DESCRIPTION.get().isEmpty() ? Blocks.AIR.getName().getString() : Config.SERVER.ITEM_SHOW_CUSTOM_EMPTY_DESCRIPTION.get();
+                                String empty = Config.SERVER.ITEM_DISPLAY_CUSTOM_EMPTY_NAME.get().isEmpty() ? Blocks.AIR.getName().getString() : Config.SERVER.ITEM_DISPLAY_CUSTOM_EMPTY_NAME.get();
+                                String emptyDescription = Config.SERVER.ITEM_DISPLAY_CUSTOM_EMPTY_DESCRIPTION.get().isEmpty() ? Blocks.AIR.getName().getString() : Config.SERVER.ITEM_DISPLAY_CUSTOM_EMPTY_DESCRIPTION.get();
                                 newChat.append(Component.literal("[" + empty + "]").withStyle(style -> style
                                         .withColor(ChatFormatting.AQUA)
                                         .withHoverEvent(new HoverEvent.ShowText(Component.literal(emptyDescription)))
@@ -248,7 +248,7 @@ public class ItemShow {
             }
             return newChat;
         }else{
-            LOGGER.warn("Item show prefix or suffix is empty");
+            LOGGER.warn("Item display prefix or suffix is empty");
             return (MutableComponent) chat;
         }
     }

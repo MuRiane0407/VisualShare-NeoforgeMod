@@ -370,20 +370,18 @@ public class ScreenshotScreen extends Screen {
         fastScrDir.mkdir();
         File file = new File(fastScrDir, imageId + ".png");
 
-        Util.ioPool().execute( // IO线程
-                () -> {
-                    try {
-                        this.imageHistory.get(this.step).writeToFile(file);
-                        this.tip = Component.translatable("tip.visual_share.screenshot.success_save",
-                                Component.literal(imageId)
-                                        .withStyle(ChatFormatting.UNDERLINE)
-                                        .withStyle(style -> style.withClickEvent(new ClickEvent.OpenFile(file)))); // 然而界面内点了没用（或者可能是我的渲染方式点了没用）
-                    } catch (Exception e) {
-                        LOGGER.error("Couldn't save image {}", e.getMessage());
-                        this.tip = Component.translatable("tip.visual_share.screenshot.cant_save", e).withStyle(ChatFormatting.RED);
-                    }
-                    this.reload();
-                });
+        try {
+            this.imageHistory.get(this.step).writeToFile(file);
+            this.tip = Component.translatable("tip.visual_share.screenshot.success_save",
+                    Component.literal(imageId)
+                            .withStyle(ChatFormatting.UNDERLINE)
+                            .withStyle(style -> style.withClickEvent(new ClickEvent.OpenFile(file)))); // 然而界面内点了没用（或者可能是我的渲染方式点了没用）
+            LOGGER.info("Successful save image {}", imageId);
+        } catch (Exception e) {
+            this.tip = Component.translatable("tip.visual_share.screenshot.cant_save", e).withStyle(ChatFormatting.RED);
+            LOGGER.error("Couldn't save image: {}", e.getMessage());
+        }
+        this.reload();
     }
 
     public void imageShare(){

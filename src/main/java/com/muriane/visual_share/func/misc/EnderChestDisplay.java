@@ -26,19 +26,19 @@ import org.slf4j.Logger;
 import java.util.Optional;
 
 @EventBusSubscriber
-public class EnderChestShow {
+public class EnderChestDisplay {
     public static final Logger LOGGER = LogUtils.getLogger();
-    public static final Identifier ENDER_CHEST_SHOW = Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "ender_chest_show");
+    public static final Identifier ENDER_CHEST_DISPLAY = Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "ender_chest_display");
 
     @SubscribeEvent
     public static void onKey(InputEvent.Key event){
         Minecraft mc = Minecraft.getInstance();
         if (event.getAction() == InputConstants.PRESS) {
-            if (event.getKey() == ModKeys.MISC_ENDER_CHEST_SHOW.getKey().getValue()) {
-                if (Config.SERVER.ENABLE_ENDER_CHEST_SHOW.get()){
+            if (event.getKey() == ModKeys.MISC_ENDER_CHEST_DISPLAY.getKey().getValue()) {
+                if (Config.SERVER.ENABLE_ENDER_CHEST_DISPLAY.get()){
                     if (mc.level != null && mc.player != null) { // 用level来判断玩家是否已经在某个服务器中
-                        String marker = Config.SERVER.ENDER_CHEST_SHOW_MARKER.get();
-                        if (Config.CLIENT.ITEM_SHOW_DIRECTLY_SEND.get()) {
+                        String marker = Config.SERVER.ENDER_CHEST_DISPLAY_MARKER.get();
+                        if (Config.CLIENT.ITEM_DISPLAY_DIRECTLY_SEND.get()) {
                             mc.player.connection.sendChat(StringUtil.trimChatMessage(StringUtils.normalizeSpace((marker).trim())));
                         } else {
                             ClipboardManager clipboard = new ClipboardManager();
@@ -48,7 +48,7 @@ public class EnderChestShow {
                     }
                 }else{
                     if (mc.player != null){
-                        mc.player.sendOverlayMessage(Component.translatable("overlay.visual_share.misc.ender_chest_show.not_enable"));
+                        mc.player.sendOverlayMessage(Component.translatable("overlay.visual_share.misc.ender_chest_display.not_enable"));
                     }
                 }
             }
@@ -64,7 +64,7 @@ public class EnderChestShow {
 
     /// 转换带标识符的信息为末影箱信息
     public static MutableComponent tranInfoToEnderChest(Component chat, Player player){
-        String marker = Config.SERVER.ENDER_CHEST_SHOW_MARKER.get();
+        String marker = Config.SERVER.ENDER_CHEST_DISPLAY_MARKER.get();
 
         if (!marker.isEmpty()){
             MutableComponent newChat = MutableComponent.create(Component.empty().getContents());
@@ -81,11 +81,11 @@ public class EnderChestShow {
 
                         CompoundTag tag = new CompoundTag();
                         tag.putString("uuid", player.getStringUUID());
-                        newChat.append(Component.translatable("chat.visual_share.ender_chest_show", player.getName()).withStyle(style -> style
+                        newChat.append(Component.translatable("chat.visual_share.ender_chest_display", player.getName()).withStyle(style -> style
                                 .withColor(ChatFormatting.LIGHT_PURPLE)
-                                .withHoverEvent(new HoverEvent.ShowText(Component.literal("Click to open")))
+                                .withHoverEvent(new HoverEvent.ShowText(Component.translatable("tooltip.visual_share.misc.display")))
                                 .withClickEvent(new ClickEvent.Custom(
-                                        ENDER_CHEST_SHOW,
+                                        ENDER_CHEST_DISPLAY,
                                         Optional.of(tag)
                                 ))
                         ));
@@ -101,7 +101,7 @@ public class EnderChestShow {
             }
             return newChat;
         }else{
-            LOGGER.warn("Ender chest show marker is empty");
+            LOGGER.warn("Ender chest display marker is empty");
             return (MutableComponent) chat;
         }
     }

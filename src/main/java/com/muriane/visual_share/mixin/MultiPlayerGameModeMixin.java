@@ -1,6 +1,6 @@
 package com.muriane.visual_share.mixin;
 
-import com.muriane.visual_share.func.misc.ItemShow;
+import com.muriane.visual_share.func.misc.ItemDisplay;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerInput;
@@ -17,7 +17,7 @@ public class MultiPlayerGameModeMixin {
             cancellable = true
     )
     public void visual_share$handleContainerInput(int containerId, int slotNum, int buttonNum, ContainerInput containerInput, Player player, CallbackInfo ci){
-        if (containerId == ItemShow.containerId){
+        if (containerId == ItemDisplay.containerId){
             ci.cancel();
         }
     }

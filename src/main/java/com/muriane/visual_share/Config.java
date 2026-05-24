@@ -21,15 +21,15 @@ public class Config {
     }
 
     public static class Server {
-        public final ModConfigSpec.BooleanValue ENABLE_ITEM_SHOW;
-        public final ModConfigSpec.ConfigValue<String> ITEM_SHOW_PREFIX;
-        public final ModConfigSpec.ConfigValue<String> ITEM_SHOW_SUBFIX;
-        public final ModConfigSpec.ConfigValue<String> ITEM_SHOW_CUSTOM_EMPTY_NAME;
-        public final ModConfigSpec.ConfigValue<String> ITEM_SHOW_CUSTOM_EMPTY_DESCRIPTION;
-        public final ModConfigSpec.BooleanValue ENABLE_INVENTORY_SHOW;
-        public final ModConfigSpec.ConfigValue<String> INVENTORY_SHOW_MARKER;
-        public final ModConfigSpec.BooleanValue ENABLE_ENDER_CHEST_SHOW;
-        public final ModConfigSpec.ConfigValue<String> ENDER_CHEST_SHOW_MARKER;
+        public final ModConfigSpec.BooleanValue ENABLE_ITEM_DISPLAY;
+        public final ModConfigSpec.ConfigValue<String> ITEM_DISPLAY_PREFIX;
+        public final ModConfigSpec.ConfigValue<String> ITEM_DISPLAY_SUBFIX;
+        public final ModConfigSpec.ConfigValue<String> ITEM_DISPLAY_CUSTOM_EMPTY_NAME;
+        public final ModConfigSpec.ConfigValue<String> ITEM_DISPLAY_CUSTOM_EMPTY_DESCRIPTION;
+        public final ModConfigSpec.BooleanValue ENABLE_INVENTORY_DISPLAY;
+        public final ModConfigSpec.ConfigValue<String> INVENTORY_DISPLAY_MARKER;
+        public final ModConfigSpec.BooleanValue ENABLE_ENDER_CHEST_DISPLAY;
+        public final ModConfigSpec.ConfigValue<String> ENDER_CHEST_DISPLAY_MARKER;
 
         public final ModConfigSpec.BooleanValue ENABLE_SCREENSHOT_SHARE;
         public final ModConfigSpec.EnumValue<OverrideMode> SCREENSHOT_SHARE_OVERRIDE_CLIENT_PARAM;
@@ -51,39 +51,39 @@ public class Config {
         Server(ModConfigSpec.Builder builder){
             builder.push("misc");
 
-            builder.push("item_show");
-            ENABLE_ITEM_SHOW = builder
-                    .translation("visual_share.configuration.misc.item_show.enable")
+            builder.push("item_display");
+            ENABLE_ITEM_DISPLAY = builder
+                    .translation("visual_share.configuration.misc.item_display.enable")
                     .define("enable", true);
-            ITEM_SHOW_PREFIX = builder
-                    .translation("visual_share.configuration.misc.item_show.prefix")
+            ITEM_DISPLAY_PREFIX = builder
+                    .translation("visual_share.configuration.misc.item_display.prefix")
                     .define("prefix", "[i");
-            ITEM_SHOW_SUBFIX = builder
-                    .translation("visual_share.configuration.misc.item_show.subfix")
+            ITEM_DISPLAY_SUBFIX = builder
+                    .translation("visual_share.configuration.misc.item_display.subfix")
                     .define("subfix", "]");
-            ITEM_SHOW_CUSTOM_EMPTY_NAME = builder
-                    .translation("visual_share.configuration.misc.item_show.custom_empty_name")
+            ITEM_DISPLAY_CUSTOM_EMPTY_NAME = builder
+                    .translation("visual_share.configuration.misc.item_display.custom_empty_name")
                     .define("custom_empty_name", "");
-            ITEM_SHOW_CUSTOM_EMPTY_DESCRIPTION = builder
-                    .translation("visual_share.configuration.misc.item_show.custom_empty_description")
+            ITEM_DISPLAY_CUSTOM_EMPTY_DESCRIPTION = builder
+                    .translation("visual_share.configuration.misc.item_display.custom_empty_description")
                     .define("custom_empty_description", "");
             builder.pop();
 
-            builder.push("inventory_show");
-            ENABLE_INVENTORY_SHOW = builder
-                    .translation("visual_share.configuration.misc.inventory_show.enable")
+            builder.push("inventory_display");
+            ENABLE_INVENTORY_DISPLAY = builder
+                    .translation("visual_share.configuration.misc.inventory_display.enable")
                     .define("enable", true);
-            INVENTORY_SHOW_MARKER = builder
-                    .translation("visual_share.configuration.misc.inventory_show.marker")
+            INVENTORY_DISPLAY_MARKER = builder
+                    .translation("visual_share.configuration.misc.inventory_display.marker")
                     .define("marker", "[inv]");
             builder.pop();
 
-            builder.push("ender_chest_show");
-            ENABLE_ENDER_CHEST_SHOW = builder
-                    .translation("visual_share.configuration.misc.ender_chest_show.enable")
+            builder.push("ender_chest_display");
+            ENABLE_ENDER_CHEST_DISPLAY = builder
+                    .translation("visual_share.configuration.misc.ender_chest_display.enable")
                     .define("enable", true);
-            ENDER_CHEST_SHOW_MARKER = builder
-                    .translation("visual_share.configuration.misc.ender_chest_show.marker")
+            ENDER_CHEST_DISPLAY_MARKER = builder
+                    .translation("visual_share.configuration.misc.ender_chest_display.marker")
                     .define("marker", "[ec]");
             builder.pop();
 
@@ -106,7 +106,7 @@ public class Config {
             builder.push("share_param");
             SCREENSHOT_SHARE_AVIF_QUALITY = builder
                     .translation("visual_share.configuration.screenshot.share_param.avif_quality")
-                    .defineInRange("avif_quality", 75, 0, 100);
+                    .defineInRange("avif_quality", 60, 0, 100);
             SCREENSHOT_SHARE_AVIF_SPEED = builder
                     .translation("visual_share.configuration.screenshot.share_param.avif_speed")
                     .defineInRange("avif_speed", 10, 0, 10);
@@ -155,7 +155,7 @@ public class Config {
     }
 
     public static class Client {
-        public final ModConfigSpec.BooleanValue ITEM_SHOW_DIRECTLY_SEND;
+        public final ModConfigSpec.BooleanValue ITEM_DISPLAY_DIRECTLY_SEND;
 
         public final ModConfigSpec.EnumValue<DataType> SCREENSHOT_SHARE_DATA_TYPE;
         public final ModConfigSpec.IntValue SCREENSHOT_SHARE_AVIF_QUALITY;
@@ -173,7 +173,7 @@ public class Config {
 
         Client(ModConfigSpec.Builder builder){
             builder.push("misc");
-            ITEM_SHOW_DIRECTLY_SEND = builder
+            ITEM_DISPLAY_DIRECTLY_SEND = builder
                     .translation("visual_share.configuration.misc.directly_send")
                     .define("directly_send", true);
             builder.pop();
@@ -187,7 +187,7 @@ public class Config {
             builder.push("share_param");
             SCREENSHOT_SHARE_AVIF_QUALITY = builder
                     .translation("visual_share.configuration.screenshot.share_param.avif_quality")
-                    .defineInRange("avif_quality", 75, 0, 100);
+                    .defineInRange("avif_quality", 60, 0, 100);
             SCREENSHOT_SHARE_AVIF_SPEED = builder
                     .translation("visual_share.configuration.screenshot.share_param.avif_speed")
                     .defineInRange("avif_speed", 10, 0, 10);

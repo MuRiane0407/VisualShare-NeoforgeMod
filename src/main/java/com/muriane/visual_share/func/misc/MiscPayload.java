@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 
 import java.util.UUID;
 
-import static com.muriane.visual_share.func.misc.ItemShow.containerId;
+import static com.muriane.visual_share.func.misc.ItemDisplay.containerId;
 
 public class MiscPayload {
     public record OpenContainerData(String uuid, int containerType) implements CustomPacketPayload {
@@ -68,14 +68,14 @@ public class MiscPayload {
                 public static void handleDataOnMain(final OpenContainerData data, final IPayloadContext context) {
                     Level level = context.player().level();
                     UUID uuid = UUID.fromString(data.uuid);
-                    Player showPlayer = level.getPlayerByUUID(uuid);
+                    Player displayPlayer = level.getPlayerByUUID(uuid);
                     Player seePlayer = context.player();
 
-                    if (showPlayer != null) {
+                    if (displayPlayer != null) {
                         if (data.containerType == ContainerType.INVENTORY.getType()){
                             ChestMenu menu = ChestMenu.fiveRows(containerId, seePlayer.getInventory());
 
-                            Inventory inv = showPlayer.getInventory();
+                            Inventory inv = displayPlayer.getInventory();
                             for (int i = 0; i < inv.getContainerSize(); i++) {
                                 if (i < 9) menu.setItem(i + 36, 0, inv.getItem(i));
                                 else if (i < 36) menu.setItem(i, 0, inv.getItem(i));
@@ -85,15 +85,15 @@ public class MiscPayload {
 
                             context.player().openMenu(new SimpleMenuProvider(
                                     (c, i, p) -> menu,
-                                    Component.translatable("container.visual_share.misc.inventory_show", showPlayer.getName())
+                                    Component.translatable("container.visual_share.misc.inventory_display", displayPlayer.getName())
                             ));
                         }else if (data.containerType == ContainerType.ENDERCHEST.getType()){
-                            Container container = showPlayer.getEnderChestInventory();
+                            Container container = displayPlayer.getEnderChestInventory();
                             ChestMenu menu = ChestMenu.threeRows(containerId, seePlayer.getInventory(), container);
 
                             context.player().openMenu(new SimpleMenuProvider(
                                     (c, i, p) -> menu,
-                                    Component.translatable("container.visual_share.misc.ender_chest_show", showPlayer.getName())
+                                    Component.translatable("container.visual_share.misc.ender_chest_display", displayPlayer.getName())
                             ));
                         }
                     }

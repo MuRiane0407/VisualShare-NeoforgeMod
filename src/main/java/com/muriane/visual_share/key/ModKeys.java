@@ -11,22 +11,22 @@ import net.neoforged.neoforge.client.settings.KeyConflictContext;
 
 public class ModKeys {
     public static KeyMapping.Category MISC_KEY_CATEGORY = new KeyMapping.Category(Identifier.fromNamespaceAndPath(VisualShare.MOD_ID, "misc"));
-    public static KeyMapping MISC_ITEM_SHOW = new KeyMapping(
-            "key.visual_share.misc.item_show",
+    public static KeyMapping MISC_ITEM_DISPLAY = new KeyMapping(
+            "key.visual_share.misc.item_display",
             KeyConflictContext.UNIVERSAL,
             InputConstants.Type.KEYSYM,
             InputConstants.UNKNOWN.getValue(),
             MISC_KEY_CATEGORY
     );
-    public static KeyMapping MISC_INVENTORY_SHOW = new KeyMapping(
-            "key.visual_share.misc.inventory_show",
+    public static KeyMapping MISC_INVENTORY_DISPLAY = new KeyMapping(
+            "key.visual_share.misc.inventory_display",
             KeyConflictContext.UNIVERSAL,
             InputConstants.Type.KEYSYM,
             InputConstants.UNKNOWN.getValue(),
             MISC_KEY_CATEGORY
     );
-    public static KeyMapping MISC_ENDER_CHEST_SHOW = new KeyMapping(
-            "key.visual_share.misc.ender_chest_show",
+    public static KeyMapping MISC_ENDER_CHEST_DISPLAY = new KeyMapping(
+            "key.visual_share.misc.ender_chest_display",
             KeyConflictContext.UNIVERSAL,
             InputConstants.Type.KEYSYM,
             InputConstants.UNKNOWN.getValue(),
@@ -127,9 +127,9 @@ public class ModKeys {
     public static class KeyHolder{
         @SubscribeEvent
         public static void registerKey(RegisterKeyMappingsEvent event){
-            event.register(MISC_ITEM_SHOW);
-            event.register(MISC_INVENTORY_SHOW);
-            event.register(MISC_ENDER_CHEST_SHOW);
+            event.register(MISC_ITEM_DISPLAY);
+            event.register(MISC_INVENTORY_DISPLAY);
+            event.register(MISC_ENDER_CHEST_DISPLAY);
 
             event.register(SCREENSHOT_SCREENSHOT);
             event.register(SCREENSHOT_SELECTION);

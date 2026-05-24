@@ -1,9 +1,9 @@
 package com.muriane.visual_share.mixin;
 
 import com.mojang.logging.LogUtils;
-import com.muriane.visual_share.func.misc.EnderChestShow;
-import com.muriane.visual_share.func.misc.InventoryShow;
-import com.muriane.visual_share.func.misc.ItemShow;
+import com.muriane.visual_share.func.misc.EnderChestDisplay;
+import com.muriane.visual_share.func.misc.InventoryDisplay;
+import com.muriane.visual_share.func.misc.ItemDisplay;
 import com.muriane.visual_share.func.structure_view.Structure;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.nbt.CompoundTag;
@@ -31,25 +31,25 @@ public abstract class ChatScreenMixin {
     public void visual_share$handleComponentClicked(Style clicked, boolean allowInsertions, CallbackInfoReturnable<Boolean> cir){
         ClickEvent event = clicked.getClickEvent();
         if (event instanceof ClickEvent.Custom(Identifier id, Optional<Tag> payload)) {
-            if (id.equals(ItemShow.ITEM_SHOW)){
+            if (id.equals(ItemDisplay.ITEM_DISPLAY)){
                 if (payload.isPresent()){
-                    ItemShow.onClickOpenContainer((CompoundTag) payload.get());
+                    ItemDisplay.onClickOpenContainer((CompoundTag) payload.get());
                 }else{
-                    visual_share$LOGGER.warn("Empty tag in item show");
+                    visual_share$LOGGER.warn("Empty tag in item display");
                 }
                 cir.setReturnValue(true);
-            }else if (id.equals(InventoryShow.INVENTORY_SHOW)){
+            }else if (id.equals(InventoryDisplay.INVENTORY_DISPLAY)){
                 if (payload.isPresent()){
-                    InventoryShow.onClickOpenContainer((CompoundTag) payload.get());
+                    InventoryDisplay.onClickOpenContainer((CompoundTag) payload.get());
                 }else{
-                    visual_share$LOGGER.warn("Empty tag in inventory show");
+                    visual_share$LOGGER.warn("Empty tag in inventory display");
                 }
                 cir.setReturnValue(true);
-            }else if (id.equals(EnderChestShow.ENDER_CHEST_SHOW)){
+            }else if (id.equals(EnderChestDisplay.ENDER_CHEST_DISPLAY)){
                 if (payload.isPresent()){
-                    EnderChestShow.onClickOpenContainer((CompoundTag) payload.get());
+                    EnderChestDisplay.onClickOpenContainer((CompoundTag) payload.get());
                 }else{
-                    visual_share$LOGGER.warn("Empty tag in ender chest show");
+                    visual_share$LOGGER.warn("Empty tag in ender chest display");
                 }
                 cir.setReturnValue(true);
             }else if (id.equals(Structure.STRUCTURE)){
